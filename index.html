@@ -51,14 +51,14 @@
 
     <button onclick="copyHTML()">Copiar HTML</button>
 
-    <textarea id="output" placeholder="HTML ao vivo..." readonly></textarea>
+    <textarea id="output" readonly style="width:100%; height:200px; margin-top:15px;"></textarea>
   </div>
 
   <script>
-    let editorInstance;
-    
-    ClassicEditor
-      .create(document.querySelector('#editor'), {
+  let editorInstance;
+  
+  ClassicEditor
+    .create(document.querySelector('#editor'), {
       toolbar: [
         'bold',
         'italic',
@@ -70,32 +70,37 @@
         'undo',
         'redo'
       ]
-      })
-      .then(editor => {
-        editorInstance = editor;
-    
-        // atualização em tempo real
-        editor.model.document.on('change:data', () => {
-        });
-    
-      })
-      .catch(error => {
-        console.error(error);
+    })
+    .then(editor => {
+      editorInstance = editor;
+  
+      // 🔥 live HTML seguro
+      editor.model.document.on('change:data', () => {
+        updateLiveHTML();
       });
-    
-      function copyHTML() {
-        if (!editorInstance) return;
-      
-        let html = editorInstance.getData();
-      
-        html = html
-          .replace(/<strong>/g, '<span style="font-weight:bold;">')
-          .replace(/<\/strong>/g, '</span>')
-          .replace(/<b>/g, '<span style="font-weight:bold;">')
-          .replace(/<\/b>/g, '</span>');
-      
-        navigator.clipboard.writeText(html);
-      }
+  
+      // inicializa já preenchido
+      updateLiveHTML();
+    })
+    .catch(error => {
+      console.error(error);
+    });
+  
+  function updateLiveHTML() {
+    if (!editorInstance) return;
+  
+    let html = editorInstance.getData();
+  
+    // conversão para sistema legado
+    html = html
+      .replace(/<strong>/g, '<span style="font-weight:bold;">')
+      .replace(/<\/strong>/g, '</span>')
+      .replace(/<b>/g, '<span style="font-weight:bold;">')
+      .replace(/<\/b>/g, '</span>');
+  
+    const output = document.getElementById('output');
+    if (output) output.value = html;
+  }
   </script>
 
 </body>
