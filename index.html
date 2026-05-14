@@ -90,18 +90,25 @@
       });
     
       function copyHTML() {
+        if (!editorInstance) {
+          alert("Editor ainda não carregou.");
+          return;
+        }
+      
         let html = editorInstance.getData();
       
-        // normalização para sistema legado
         html = html
           .replace(/<strong>/g, '<span style="font-weight:bold;">')
           .replace(/<\/strong>/g, '</span>')
           .replace(/<b>/g, '<span style="font-weight:bold;">')
           .replace(/<\/b>/g, '</span>');
       
-        navigator.clipboard.writeText(html);
-      
-        alert("HTML copiado para a área de transferência!");
+        navigator.clipboard.writeText(html)
+          .then(() => alert("HTML copiado!"))
+          .catch(err => {
+            console.error(err);
+            alert("Erro ao copiar HTML.");
+          });
       }
   </script>
 
