@@ -56,13 +56,16 @@
 
   <script>
     let editorInstance;
-
+    
     ClassicEditor
       .create(document.querySelector('#editor'), {
         toolbar: [
           'bold',
           'italic',
           'underline',
+          'strikethrough',
+          '|',
+          'heading',
           '|',
           'bulletedList',
           'numberedList',
@@ -72,11 +75,24 @@
           'redo'
         ]
       })
-
-    function exportHTML() {
+      .then(editor => {
+        editorInstance = editor;
+    
+        // atualização em tempo real
+        editor.model.document.on('change:data', () => {
+          updateHTML();
+        });
+    
+        updateHTML();
+      })
+      .catch(error => {
+        console.error(error);
+      });
+    
+    function updateHTML() {
       let html = editorInstance.getData();
     
-      // converte qualquer bold para span style
+      // converte para sistema legado
       html = html
         .replace(/<strong>/g, '<span style="font-weight:bold;">')
         .replace(/<\/strong>/g, '</span>')
