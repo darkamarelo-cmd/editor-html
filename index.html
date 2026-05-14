@@ -59,41 +59,32 @@
     
     ClassicEditor
       .create(document.querySelector('#editor'), {
-        toolbar: [
-          'bold',
-          'italic',
-          'underline',
-          'strikethrough',
-          '|',
-          'heading',
-          '|',
-          'bulletedList',
-          'numberedList',
-          '|',
-          'link',
-          'undo',
-          'redo'
-        ]
+      toolbar: [
+        'bold',
+        'italic',
+        'underline',
+        '|',
+        'bulletedList',
+        'numberedList',
+        '|',
+        'undo',
+        'redo'
+      ]
       })
       .then(editor => {
         editorInstance = editor;
     
         // atualização em tempo real
         editor.model.document.on('change:data', () => {
-          updateHTML();
         });
     
-        updateHTML();
       })
       .catch(error => {
         console.error(error);
       });
     
       function copyHTML() {
-        if (!editorInstance) {
-          alert("Editor ainda não carregou.");
-          return;
-        }
+        if (!editorInstance) return;
       
         let html = editorInstance.getData();
       
@@ -103,12 +94,7 @@
           .replace(/<b>/g, '<span style="font-weight:bold;">')
           .replace(/<\/b>/g, '</span>');
       
-        navigator.clipboard.writeText(html)
-          .then(() => alert("HTML copiado!"))
-          .catch(err => {
-            console.error(err);
-            alert("Erro ao copiar HTML.");
-          });
+        navigator.clipboard.writeText(html);
       }
   </script>
 
