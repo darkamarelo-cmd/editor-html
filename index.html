@@ -101,6 +101,46 @@
     const output = document.getElementById('output');
     if (output) output.value = html;
   }
+
+
+  function copyHTML() {
+    if (!editorInstance) {
+      alert("Editor ainda não carregou");
+      return;
+    }
+  
+    let html = editorInstance.getData();
+  
+    html = html
+      .replace(/<strong>/g, '<span style="font-weight:bold;">')
+      .replace(/<\/strong>/g, '</span>')
+      .replace(/<b>/g, '<span style="font-weight:bold;">')
+      .replace(/<\/b>/g, '</span>');
+  
+    // fallback compatível (caso clipboard falhe)
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(html)
+        .then(() => {
+          alert("HTML copiado!");
+        })
+        .catch(() => {
+          fallbackCopy(html);
+        });
+    } else {
+      fallbackCopy(html);
+    }
+  }
+  
+  function fallbackCopy(text) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+  
+    alert("HTML copiado (modo compatível)");
+  }
   </script>
 
 </body>
