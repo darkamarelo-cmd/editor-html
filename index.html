@@ -2,30 +2,34 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Editor HTML - CKEditor 5</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
+  <title>Editor HTML</title>
+
+  <!-- CKEditor 5 Super Build -->
   <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
 
   <style>
+
     body {
-      font-family: Arial, sans-serif;
       margin: 20px;
+      font-family: Arial, sans-serif;
       background: #f5f5f5;
     }
 
     h2 {
-      margin-bottom: 10px;
+      margin-bottom: 15px;
     }
 
     #container {
-      background: #fff;
-      padding: 15px;
+      background: white;
+      padding: 20px;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     #editor {
-      min-height: 250px;
+      min-height: 300px;
     }
 
     button {
@@ -36,376 +40,234 @@
 
     textarea {
       width: 100%;
-      height: 200px;
-      margin-top: 15px;
+      height: 250px;
+      margin-top: 20px;
+      font-family: monospace;
     }
 
-
-    #custom-toolbar {
-      display: flex;
-      gap: 5px;
-      margin-bottom: 10px;
-    }
-    
-    #custom-toolbar button {
-      border: 1px solid #ccc;
-      background: white;
-      padding: 6px 10px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    
-    #custom-toolbar button:hover {
-      background: #f0f0f0;
-    }
-
-    /* Lista alfabética */
-    .ck-content ol.list-alpha {
-      list-style-type: upper-alpha;
-    }
-    
-    /* Lista romana */
-    .ck-content ol.list-roman {
-      list-style-type: upper-roman;
-    }
-
-      
   </style>
 </head>
 
 <body>
 
-  <h2>Editor HTML (CKEditor 5)</h2>
+  <h2>Editor HTML</h2>
 
-    <div id="container">
-      
-    <div id="custom-toolbar">
-    
-      <button onclick="setAlphaList()">
-        A.B.C.
-      </button>
-    
-      <button onclick="setRomanList()">
-        I.II.III.
-      </button>
-    
-    </div>
-    
+  <div id="container">
+
     <div id="editor"></div>
 
-    <button onclick="copyHTML()">Copiar HTML</button>
+    <button onclick="copyHTML()">
+      Copiar HTML
+    </button>
 
-    <textarea id="output" readonly style="width:100%; height:200px; margin-top:15px;"></textarea>
+    <textarea id="output" readonly></textarea>
+
   </div>
 
   <script>
-  let editorInstance;
-  let updateTimeout;
-  
-  CKEDITOR.ClassicEditor
-    .create(document.querySelector('#editor'), {
-  
-      toolbar: {
-        items: [
-          'heading',
-          '|',
-          'bold',
-          'italic',
-          'underline',
-          '|',
-          'bulletedList',
-          'numberedList',
-          '|',
-          'undo',
-          'redo'
-        ]
-      },
-  
-      heading: {
-        options: [
-          {
-            model: 'paragraph',
-            title: 'Parágrafo',
-            class: 'ck-heading_paragraph'
-          },
-          {
-            model: 'heading1',
-            view: 'h1',
-            title: 'Título 1'
-          },
-          {
-            model: 'heading2',
-            view: 'h2',
-            title: 'Título 2'
-          },
-          {
-            model: 'heading3',
-            view: 'h3',
-            title: 'Título 3'
-          }
-        ]
-      }
-  
-    })
 
-  .then(editor => {
+    let editorInstance;
+    let updateTimeout;
 
-    editorInstance = editor;
+    CKEDITOR.ClassicEditor
+      .create(document.querySelector('#editor'), {
 
-    editor.model.document.on('change:data', () => {
+        toolbar: {
+          items: [
 
-      clearTimeout(updateTimeout);
+            'heading',
 
-      updateTimeout = setTimeout(() => {
-        updateLiveHTML();
-      }, 100);
+            '|',
 
-    });
+            'bold',
+            'italic',
+            'underline',
 
-    updateLiveHTML();
+            '|',
 
-  })
+            'bulletedList',
+            'numberedList',
 
-  .catch(error => {
-    console.error(error);
-  });
-  
-  function updateLiveHTML() {
-  
-    const editorDOM = document.querySelector('.ck-content');
-  
-    if (!editorDOM) return;
-  
-    const clone = editorDOM.cloneNode(true);
-  
-    // BOLD LEGADO
-    clone.querySelectorAll('strong').forEach(el => {
-      el.outerHTML =
-        `<span style="font-weight:bold;">${el.innerHTML}</span>`;
-    });
-  
-    clone.querySelectorAll('b').forEach(el => {
-      el.outerHTML =
-        `<span style="font-weight:bold;">${el.innerHTML}</span>`;
-    });
-  
-    // LISTAS
-    clone.querySelectorAll('ol').forEach(list => {
-  
-      const type =
-        list.getAttribute('data-custom-list');
-  
-      const items =
-        [...list.querySelectorAll('li')];
-  
-      let html = '';
-  
-      const roman = [
-        'I','II','III','IV','V',
-        'VI','VII','VIII','IX','X'
-      ];
-  
-      items.forEach((item, index) => {
-  
-        let prefix = '';
-  
-        // alpha
-        if (type === 'alpha') {
-          prefix =
-            String.fromCharCode(65 + index) + '.';
+            '|',
+
+            'alignment',
+
+            '|',
+
+            'outdent',
+            'indent',
+
+            '|',
+
+            'undo',
+            'redo'
+
+          ]
+        },
+
+        heading: {
+          options: [
+
+            {
+              model: 'paragraph',
+              title: 'Parágrafo',
+              class: 'ck-heading_paragraph'
+            },
+
+            {
+              model: 'heading1',
+              view: 'h1',
+              title: 'Título 1'
+            },
+
+            {
+              model: 'heading2',
+              view: 'h2',
+              title: 'Título 2'
+            },
+
+            {
+              model: 'heading3',
+              view: 'h3',
+              title: 'Título 3'
+            }
+
+          ]
         }
-  
-        // roman
-        else if (type === 'roman') {
-          prefix = roman[index] + '.';
-        }
-  
-        // numeric
-        else {
-          prefix = (index + 1) + '.';
-        }
-  
-        html += `<p>${prefix} ${item.innerHTML}</p>`;
-      });
-  
-      list.outerHTML = html;
-    });
-  
-    // BULLETS
-    clone.querySelectorAll('ul').forEach(list => {
-  
-      const items =
-        [...list.querySelectorAll('li')];
-  
-      let html = '';
-  
-      items.forEach(item => {
-        html += `<p>• ${item.innerHTML}</p>`;
-      });
-  
-      list.outerHTML = html;
-    });
-  
-    document.getElementById('output').value =
-      clone.innerHTML;
-  }
 
+      })
 
-  function copyHTML() {
-  
-    const output =
-      document.getElementById('output');
-  
-    if (!output) {
-      alert('HTML não encontrado');
-      return;
-    }
-  
-    const html = output.value;
-  
-    // Clipboard moderno
-    if (navigator.clipboard && window.isSecureContext) {
-  
-      navigator.clipboard.writeText(html)
-        .then(() => {
-          alert('HTML copiado!');
-        })
-        .catch(() => {
-          fallbackCopy(html);
+      .then(editor => {
+
+        editorInstance = editor;
+
+        editor.model.document.on('change:data', () => {
+
+          clearTimeout(updateTimeout);
+
+          updateTimeout = setTimeout(() => {
+            updateLiveHTML();
+          }, 100);
+
         });
-  
-    } else {
-  
-      fallbackCopy(html);
+
+        updateLiveHTML();
+
+      })
+
+      .catch(error => {
+        console.error(error);
+      });
+
+
+
+
+    // =========================================
+    // LIVE HTML
+    // =========================================
+
+    function updateLiveHTML() {
+
+      if (!editorInstance) return;
+
+      let html = editorInstance.getData();
+
+      html = convertToLegacyHTML(html);
+
+      document.getElementById('output').value = html;
     }
-  }
 
-  function convertLists(html) {
-  
-    // BULLET LIST
-    html = html.replace(
-      /<ul>(.*?)<\/ul>/gs,
-      (match, content) => {
-  
-        const items = [...content.matchAll(/<li>(.*?)<\/li>/g)];
-  
-        return items.map(item => {
-          return `<p>• ${item[1]}</p>`;
-        }).join('');
+
+
+
+    // =========================================
+    // CONVERSÃO LEGADO
+    // =========================================
+
+    function convertToLegacyHTML(html) {
+
+      // BOLD
+      html = html
+        .replace(/<strong>/g, '<span style="font-weight:bold;">')
+        .replace(/<\/strong>/g, '</span>')
+
+        .replace(/<b>/g, '<span style="font-weight:bold;">')
+        .replace(/<\/b>/g, '</span>');
+
+
+
+      // UNDERLINE
+      html = html
+        .replace(/<u>/g, '<span style="text-decoration:underline;">')
+        .replace(/<\/u>/g, '</span>');
+
+
+
+      return html;
+    }
+
+
+
+
+    // =========================================
+    // COPIAR HTML
+    // =========================================
+
+    function copyHTML() {
+
+      const html =
+        document.getElementById('output').value;
+
+      if (
+        navigator.clipboard &&
+        window.isSecureContext
+      ) {
+
+        navigator.clipboard.writeText(html)
+          .then(() => {
+
+            alert('HTML copiado!');
+
+          })
+          .catch(() => {
+
+            fallbackCopy(html);
+
+          });
+
+      } else {
+
+        fallbackCopy(html);
+
       }
-    );
-  
-    // NUMBERED LIST
-    html = html.replace(
-      /<ol>(.*?)<\/ol>/gs,
-      (match, content) => {
-  
-        const items = [...content.matchAll(/<li>(.*?)<\/li>/g)];
-  
-        return items.map((item, index) => {
-  
-          let prefix = '';
-  
-          // NUMÉRICA
-          if (currentListMode === 'numeric') {
-            prefix = `${index + 1}.`;
-          }
-  
-          // ALFABÉTICA
-          else if (currentListMode === 'alpha') {
-            prefix = `${String.fromCharCode(65 + index)}.`;
-          }
-  
-          // ROMANA
-          else if (currentListMode === 'roman') {
-  
-            const roman = [
-              'I','II','III','IV','V',
-              'VI','VII','VIII','IX','X'
-            ];
-  
-            prefix = `${roman[index]}.`;
-          }
-  
-          return `<p>${prefix} ${item[1]}</p>`;
-  
-        }).join('');
-      }
-    );
-  
-    return html;
-  }
-
-    
-  function fallbackCopy(text) {
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand("copy");
-    document.body.removeChild(textarea);
-  
-    alert("HTML copiado (modo compatível)");
-  }
+    }
 
 
-  function setAlphaList() {
-  
-    editorInstance.execute('numberedList');
-  
-    setTimeout(() => {
-  
-      const lists =
-        document.querySelectorAll('.ck-content ol');
-  
-      const lastList =
-        lists[lists.length - 1];
-  
-      if (lastList) {
-  
-        lastList.setAttribute(
-          'data-custom-list',
-          'alpha'
-        );
-  
-        lastList.style.listStyleType =
-          'upper-alpha';
-      }
-  
-      updateLiveHTML();
-  
-    }, 100);
-  }
 
-  function setRomanList() {
-  
-    editorInstance.execute('numberedList');
-  
-    setTimeout(() => {
-  
-      const lists =
-        document.querySelectorAll('.ck-content ol');
-  
-      const lastList =
-        lists[lists.length - 1];
-  
-      if (lastList) {
-  
-        lastList.setAttribute(
-          'data-custom-list',
-          'roman'
-        );
-  
-        lastList.style.listStyleType =
-          'upper-roman';
-      }
-  
-      updateLiveHTML();
-  
-    }, 100);
-  }
 
-    
-  </script>  
+    // =========================================
+    // FALLBACK COPY
+    // =========================================
+
+    function fallbackCopy(text) {
+
+      const textarea =
+        document.createElement('textarea');
+
+      textarea.value = text;
+
+      document.body.appendChild(textarea);
+
+      textarea.select();
+
+      document.execCommand('copy');
+
+      document.body.removeChild(textarea);
+
+      alert('HTML copiado!');
+    }
+
+  </script>
+
 </body>
 </html>
