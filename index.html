@@ -132,9 +132,26 @@
     
     .then(editor => {
       editorInstance = editor;
+
+      editor.ui.componentFactory.names().forEach(name => {
+
+        const component =
+          editor.ui.componentFactory.create(name);
+      
+        if (name === 'heading') {
+      
+          component.on('execute', () => {
+      
+            setTimeout(() => {
+              updateLiveHTML();
+            }, 50);
+      
+          });
+        }
+      });
   
       // 🔥 live HTML seguro
-      editor.editing.view.document.on('render', () => {
+      editor.model.document.on('change:data', () => {
         updateLiveHTML();
       });
   
