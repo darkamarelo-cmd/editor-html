@@ -57,7 +57,20 @@
 
   <h2>Editor HTML (CKEditor 5)</h2>
 
-  <div id="container">
+    <div id="container">
+      
+    <div style="margin-bottom:10px;">
+    
+      <button onclick="insertAlphabeticList()">
+        Lista A,B,C
+      </button>
+    
+      <button onclick="insertRomanList()">
+        Lista I,II,III
+      </button>
+    
+    </div>
+    
     <div id="editor"></div>
 
     <button onclick="copyHTML()">Copiar HTML</button>
@@ -189,6 +202,35 @@
     document.body.removeChild(textarea);
   
     alert("HTML copiado (modo compatível)");
+  }
+
+
+  function insertAlphabeticList() {
+  
+    const text =
+  `A. Primeiro item
+  B. Segundo item
+  C. Terceiro item`;
+  
+    editorInstance.model.change(writer => {
+      editorInstance.setData(
+        editorInstance.getData() + `<p>${text.replace(/\n/g, '</p><p>')}</p>`
+      );
+    });
+  }
+  
+  function insertRomanList() {
+  
+    const text =
+  `I. Primeiro item
+  II. Segundo item
+  III. Terceiro item`;
+  
+    editorInstance.model.change(writer => {
+      editorInstance.setData(
+        editorInstance.getData() + `<p>${text.replace(/\n/g, '</p><p>')}</p>`
+      );
+    });
   }
     
   </script>  
