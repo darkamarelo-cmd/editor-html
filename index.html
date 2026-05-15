@@ -100,6 +100,7 @@
 
   <script>
   let editorInstance;
+
   
   ClassicEditor
   .create(document.querySelector('#editor'), {
@@ -145,20 +146,83 @@
     });
   
   function updateLiveHTML() {
-    if (!editorInstance) return;
   
-    let html = editorInstance.getData();
+    const editorDOM = document.querySelector('.ck-content');
   
-    // conversão para sistema legado
-    html = html
-      .replace(/<strong>/g, '<span style="font-weight:bold;">')
-      .replace(/<\/strong>/g, '</span>')
-      .replace(/<b>/g, '<span style="font-weight:bold;">')
-      .replace(/<\/b>/g, '</span>');
-
-    html = convertLists(html);
-    const output = document.getElementById('output');
-    if (output) output.value = html;
+    if (!editorDOM) return;
+  
+    const clone = editorDOM.cloneNode(true);
+  
+    // BOLD LEGADO
+    clone.querySelectorAll('strong').forEach(el => {
+      el.outerHTML =
+        `<span style="font-weight:bold;">${el.innerHTML}</span>`;
+    });
+  
+    clone.querySelectorAll('b').forEach(el => {
+      el.outerHTML =
+        `<span style="font-weight:bold;">${el.innerHTML}</span>`;
+    });
+  
+    // LISTAS
+    clone.querySelectorAll('ol').forEach(list => {
+  
+      const type =
+        list.getAttribute('data-custom-list');
+  
+      const items =
+        [...list.querySelectorAll('li')];
+  
+      let html = '';
+  
+      const roman = [
+        'I','II','III','IV','V',
+        'VI','VII','VIII','IX','X'
+      ];
+  
+      items.forEach((item, index) => {
+  
+        let prefix = '';
+  
+        // alpha
+        if (type === 'alpha') {
+          prefix =
+            String.fromCharCode(65 + index) + '.';
+        }
+  
+        // roman
+        else if (type === 'roman') {
+          prefix = roman[index] + '.';
+        }
+  
+        // numeric
+        else {
+          prefix = (index + 1) + '.';
+        }
+  
+        html += `<p>${prefix} ${item.innerHTML}</p>`;
+      });
+  
+      list.outerHTML = html;
+    });
+  
+    // BULLETS
+    clone.querySelectorAll('ul').forEach(list => {
+  
+      const items =
+        [...list.querySelectorAll('li')];
+  
+      let html = '';
+  
+      items.forEach(item => {
+        html += `<p>• ${item.innerHTML}</p>`;
+      });
+  
+      list.outerHTML = html;
+    });
+  
+    document.getElementById('output').value =
+      clone.innerHTML;
   }
 
 
@@ -193,54 +257,20 @@
 
   function convertLists(html) {
   
-    // =========================
-    // LISTA ALFABÉTICA
-    // =========================
-  
+    // BULLET LIST
     html = html.replace(
-      /<ol class="list-alpha">(.*?)<\/ol>/gs,
+      /<ul>(.*?)<\/ul>/gs,
       (match, content) => {
   
         const items = [...content.matchAll(/<li>(.*?)<\/li>/g)];
   
-        return items.map((item, index) => {
-  
-          const letter =
-            String.fromCharCode(65 + index);
-  
-          return `<p>${letter}. ${item[1]}</p>`;
-  
+        return items.map(item => {
+          return `<p>• ${item[1]}</p>`;
         }).join('');
       }
     );
   
-    // =========================
-    // LISTA ROMANA
-    // =========================
-  
-    html = html.replace(
-      /<ol class="list-roman">(.*?)<\/ol>/gs,
-      (match, content) => {
-  
-        const roman = [
-          'I','II','III','IV','V',
-          'VI','VII','VIII','IX','X'
-        ];
-  
-        const items = [...content.matchAll(/<li>(.*?)<\/li>/g)];
-  
-        return items.map((item, index) => {
-  
-          return `<p>${roman[index]}. ${item[1]}</p>`;
-  
-        }).join('');
-      }
-    );
-  
-    // =========================
-    // LISTA NUMÉRICA
-    // =========================
-  
+    // NUMBERED LIST
     html = html.replace(
       /<ol>(.*?)<\/ol>/gs,
       (match, content) => {
@@ -249,25 +279,30 @@
   
         return items.map((item, index) => {
   
-          return `<p>${index + 1}. ${item[1]}</p>`;
+          let prefix = '';
   
-        }).join('');
-      }
-    );
+          // NUMÉRICA
+          if (currentListMode === 'numeric') {
+            prefix = `${index + 1}.`;
+          }
   
-    // =========================
-    // BULLETS
-    // =========================
+          // ALFABÉTICA
+          else if (currentListMode === 'alpha') {
+            prefix = `${String.fromCharCode(65 + index)}.`;
+          }
   
-    html = html.replace(
-      /<ul>(.*?)<\/ul>/gs,
-      (match, content) => {
+          // ROMANA
+          else if (currentListMode === 'roman') {
   
-        const items = [...content.matchAll(/<li>(.*?)<\/li>/g)];
+            const roman = [
+              'I','II','III','IV','V',
+              'VI','VII','VIII','IX','X'
+            ];
   
-        return items.map(item => {
+            prefix = `${roman[index]}.`;
+          }
   
-          return `<p>• ${item[1]}</p>`;
+          return `<p>${prefix} ${item[1]}</p>`;
   
         }).join('');
       }
@@ -289,37 +324,57 @@
   }
 
 
-function setAlphaList() {
+  function setAlphaList() {
+  
+    editorInstance.execute('numberedList');
+  
+    setTimeout(() => {
+  
+      const selection = window.getSelection();
+  
+      if (!selection.rangeCount) return;
+  
+      let node = selection.anchorNode;
+  
+      while (node && node.nodeName !== 'OL') {
+        node = node.parentNode;
+      }
+  
+      if (node) {
+        node.setAttribute('data-custom-list', 'alpha');
+        node.style.listStyleType = 'upper-alpha';
+      }
+  
+      updateLiveHTML();
+  
+    }, 100);
+  }
 
-  editorInstance.execute('numberedList');
-
-  setTimeout(() => {
-
-    const lists = document.querySelectorAll('.ck-content ol');
-
-    lists.forEach(list => {
-      list.classList.remove('list-roman');
-      list.classList.add('list-alpha');
-    });
-
-  }, 100);
-}
-
-function setRomanList() {
-
-  editorInstance.execute('numberedList');
-
-  setTimeout(() => {
-
-    const lists = document.querySelectorAll('.ck-content ol');
-
-    lists.forEach(list => {
-      list.classList.remove('list-alpha');
-      list.classList.add('list-roman');
-    });
-
-  }, 100);
-}
+  function setRomanList() {
+  
+    editorInstance.execute('numberedList');
+  
+    setTimeout(() => {
+  
+      const selection = window.getSelection();
+  
+      if (!selection.rangeCount) return;
+  
+      let node = selection.anchorNode;
+  
+      while (node && node.nodeName !== 'OL') {
+        node = node.parentNode;
+      }
+  
+      if (node) {
+        node.setAttribute('data-custom-list', 'roman');
+        node.style.listStyleType = 'upper-roman';
+      }
+  
+      updateLiveHTML();
+  
+    }, 100);
+  }
 
     
   </script>  
