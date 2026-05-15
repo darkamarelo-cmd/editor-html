@@ -100,7 +100,7 @@
 
   <script>
   let editorInstance;
-
+  let updateTimeout;
   
   ClassicEditor
   .create(document.querySelector('#editor'), {
@@ -132,27 +132,15 @@
     
     .then(editor => {
       editorInstance = editor;
-
-      editor.ui.componentFactory.names().forEach(name => {
-
-        const component =
-          editor.ui.componentFactory.create(name);
-      
-        if (name === 'heading') {
-      
-          component.on('execute', () => {
-      
-            setTimeout(() => {
-              updateLiveHTML();
-            }, 50);
-      
-          });
-        }
-      });
   
-      // 🔥 live HTML seguro
       editor.model.document.on('change:data', () => {
-        updateLiveHTML();
+      
+        clearTimeout(updateTimeout);
+      
+        updateTimeout = setTimeout(() => {
+          updateLiveHTML();
+        }, 100);
+      
       });
   
       // inicializa já preenchido
