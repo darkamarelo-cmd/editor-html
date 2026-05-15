@@ -134,7 +134,7 @@
       editorInstance = editor;
   
       // 🔥 live HTML seguro
-      editor.model.document.on('change:data', () => {
+      editor.editing.view.document.on('render', () => {
         updateLiveHTML();
       });
   
