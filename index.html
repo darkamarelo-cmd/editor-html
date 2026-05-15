@@ -49,6 +49,23 @@
       ]
     }
 
+    #custom-toolbar {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    
+    #custom-toolbar button {
+      border: 1px solid #ccc;
+      background: white;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    
+    #custom-toolbar button:hover {
+      background: #f0f0f0;
+    }
     
   </style>
 </head>
@@ -59,14 +76,14 @@
 
     <div id="container">
       
-    <div style="margin-bottom:10px;">
+    <div id="custom-toolbar">
     
-      <button onclick="insertAlphabeticList()">
-        Lista A,B,C
+      <button onclick="makeAlphabeticList()">
+        A. B. C.
       </button>
     
-      <button onclick="insertRomanList()">
-        Lista I,II,III
+      <button onclick="makeRomanList()">
+        I. II. III.
       </button>
     
     </div>
@@ -205,30 +222,75 @@
   }
 
 
-  function insertAlphabeticList() {
+  function makeAlphabeticList() {
   
-    const text =
-  `A. Primeiro item
-  B. Segundo item
-  C. Terceiro item`;
+    const selection = window.getSelection().toString();
   
-    editorInstance.model.change(writer => {
-      editorInstance.setData(
-        editorInstance.getData() + `<p>${text.replace(/\n/g, '</p><p>')}</p>`
-      );
+    if (!selection.trim()) {
+      alert("Selecione o texto primeiro.");
+      return;
+    }
+  
+    const lines = selection
+      .split('\n')
+      .filter(line => line.trim() !== '');
+  
+    let result = '';
+  
+    lines.forEach((line, index) => {
+  
+      const letter = String.fromCharCode(65 + index);
+  
+      result += `<p>${letter}. ${line}</p>`;
     });
+  
+    replaceSelection(result);
+  
+    currentListMode = 'alpha';
   }
+
+  function makeRomanList() {
+
+    const selection = window.getSelection().toString();
   
-  function insertRomanList() {
+    if (!selection.trim()) {
+      alert("Selecione o texto primeiro.");
+      return;
+    }
   
-    const text =
-  `I. Primeiro item
-  II. Segundo item
-  III. Terceiro item`;
+    const roman = [
+      'I','II','III','IV','V',
+      'VI','VII','VIII','IX','X'
+    ];
+  
+    const lines = selection
+      .split('\n')
+      .filter(line => line.trim() !== '');
+  
+    let result = '';
+  
+    lines.forEach((line, index) => {
+  
+      result += `<p>${roman[index]}. ${line}</p>`;
+    });
+  
+    replaceSelection(result);
+  
+    currentListMode = 'roman';
+  }
+
+  function replaceSelection(html) {
   
     editorInstance.model.change(writer => {
-      editorInstance.setData(
-        editorInstance.getData() + `<p>${text.replace(/\n/g, '</p><p>')}</p>`
+  
+      const viewFragment =
+        editorInstance.data.processor.toView(html);
+  
+      const modelFragment =
+        editorInstance.data.toModel(viewFragment);
+  
+      editorInstance.model.insertContent(
+        modelFragment
       );
     });
   }
