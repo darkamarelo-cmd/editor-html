@@ -40,14 +40,6 @@
       margin-top: 15px;
     }
 
-    heading: {
-      options: [
-        { model: 'paragraph', title: 'Parágrafo', class: 'ck-heading_paragraph' },
-        { model: 'heading1', view: 'h1', title: 'Título 1' },
-        { model: 'heading2', view: 'h2', title: 'Título 2' },
-        { model: 'heading3', view: 'h3', title: 'Título 3' }
-      ]
-    }
 
     #custom-toolbar {
       display: flex;
@@ -108,26 +100,35 @@
 
   <script>
   let editorInstance;
-  let currentListMode = 'numeric';
   
   ClassicEditor
-    .create(document.querySelector('#editor'), {
-      toolbar: [
-        'heading',
-        '|',
-        'bold',
-        'italic',
-        'underline',
-        '|',
-        'bulletedList',
-        'numberedList',
-        '|',
-        'undo',
-        'redo'
+  .create(document.querySelector('#editor'), {
+
+    toolbar: [
+      'heading',
+      '|',
+      'bold',
+      'italic',
+      'underline',
+      '|',
+      'bulletedList',
+      'numberedList',
+      '|',
+      'undo',
+      'redo'
+    ],
+
+    heading: {
+      options: [
+        { model: 'paragraph', title: 'Parágrafo', class: 'ck-heading_paragraph' },
+        { model: 'heading1', view: 'h1', title: 'Título 1' },
+        { model: 'heading2', view: 'h2', title: 'Título 2' },
+        { model: 'heading3', view: 'h3', title: 'Título 3' }
       ]
-      
-    }      
-    )
+    }
+
+  })
+    
     .then(editor => {
       editorInstance = editor;
   
@@ -192,20 +193,54 @@
 
   function convertLists(html) {
   
-    // BULLET LIST
+    // =========================
+    // LISTA ALFABÉTICA
+    // =========================
+  
     html = html.replace(
-      /<ul>(.*?)<\/ul>/gs,
+      /<ol class="list-alpha">(.*?)<\/ol>/gs,
       (match, content) => {
   
         const items = [...content.matchAll(/<li>(.*?)<\/li>/g)];
   
-        return items.map(item => {
-          return `<p>• ${item[1]}</p>`;
+        return items.map((item, index) => {
+  
+          const letter =
+            String.fromCharCode(65 + index);
+  
+          return `<p>${letter}. ${item[1]}</p>`;
+  
         }).join('');
       }
     );
   
-    // NUMBERED LIST
+    // =========================
+    // LISTA ROMANA
+    // =========================
+  
+    html = html.replace(
+      /<ol class="list-roman">(.*?)<\/ol>/gs,
+      (match, content) => {
+  
+        const roman = [
+          'I','II','III','IV','V',
+          'VI','VII','VIII','IX','X'
+        ];
+  
+        const items = [...content.matchAll(/<li>(.*?)<\/li>/g)];
+  
+        return items.map((item, index) => {
+  
+          return `<p>${roman[index]}. ${item[1]}</p>`;
+  
+        }).join('');
+      }
+    );
+  
+    // =========================
+    // LISTA NUMÉRICA
+    // =========================
+  
     html = html.replace(
       /<ol>(.*?)<\/ol>/gs,
       (match, content) => {
@@ -214,30 +249,25 @@
   
         return items.map((item, index) => {
   
-          let prefix = '';
+          return `<p>${index + 1}. ${item[1]}</p>`;
   
-          // NUMERIC
-          if (currentListMode === 'numeric') {
-            prefix = `${index + 1}.`;
-          }
+        }).join('');
+      }
+    );
   
-          // ALPHA
-          else if (currentListMode === 'alpha') {
-            prefix = `${String.fromCharCode(65 + index)}.`;
-          }
+    // =========================
+    // BULLETS
+    // =========================
   
-          // ROMAN
-          else if (currentListMode === 'roman') {
+    html = html.replace(
+      /<ul>(.*?)<\/ul>/gs,
+      (match, content) => {
   
-            const roman = [
-              'I','II','III','IV','V',
-              'VI','VII','VIII','IX','X'
-            ];
+        const items = [...content.matchAll(/<li>(.*?)<\/li>/g)];
   
-            prefix = `${roman[index]}.`;
-          }
+        return items.map(item => {
   
-          return `<p>${prefix} ${item[1]}</p>`;
+          return `<p>• ${item[1]}</p>`;
   
         }).join('');
       }
@@ -257,17 +287,6 @@
   
     alert("HTML copiado (modo compatível)");
   }
-
-
-function setListMode(mode) {
-
-  currentListMode = mode;
-
-  document.querySelectorAll('#custom-toolbar button')
-    .forEach(btn => btn.style.background = '');
-
-  event.target.style.background = '#ddd';
-}
 
 
 function setAlphaList() {
