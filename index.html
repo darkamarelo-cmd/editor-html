@@ -330,19 +330,21 @@
   
     setTimeout(() => {
   
-      const selection = window.getSelection();
+      const lists =
+        document.querySelectorAll('.ck-content ol');
   
-      if (!selection.rangeCount) return;
+      const lastList =
+        lists[lists.length - 1];
   
-      let node = selection.anchorNode;
+      if (lastList) {
   
-      while (node && node.nodeName !== 'OL') {
-        node = node.parentNode;
-      }
+        lastList.setAttribute(
+          'data-custom-list',
+          'alpha'
+        );
   
-      if (node) {
-        node.setAttribute('data-custom-list', 'alpha');
-        node.style.listStyleType = 'upper-alpha';
+        lastList.style.listStyleType =
+          'upper-alpha';
       }
   
       updateLiveHTML();
@@ -356,19 +358,21 @@
   
     setTimeout(() => {
   
-      const selection = window.getSelection();
+      const lists =
+        document.querySelectorAll('.ck-content ol');
   
-      if (!selection.rangeCount) return;
+      const lastList =
+        lists[lists.length - 1];
   
-      let node = selection.anchorNode;
+      if (lastList) {
   
-      while (node && node.nodeName !== 'OL') {
-        node = node.parentNode;
-      }
+        lastList.setAttribute(
+          'data-custom-list',
+          'roman'
+        );
   
-      if (node) {
-        node.setAttribute('data-custom-list', 'roman');
-        node.style.listStyleType = 'upper-roman';
+        lastList.style.listStyleType =
+          'upper-roman';
       }
   
       updateLiveHTML();
