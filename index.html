@@ -227,30 +227,30 @@
 
 
   function copyHTML() {
-    if (!editorInstance) {
-      alert("Editor ainda não carregou");
+  
+    const output =
+      document.getElementById('output');
+  
+    if (!output) {
+      alert('HTML não encontrado');
       return;
     }
   
-    let html = editorInstance.getData();
+    const html = output.value;
   
-    html = html
-      .replace(/<strong>/g, '<span style="font-weight:bold;">')
-      .replace(/<\/strong>/g, '</span>')
-      .replace(/<b>/g, '<span style="font-weight:bold;">')
-      .replace(/<\/b>/g, '</span>');
-
-    html = convertLists(html);
-    // fallback compatível (caso clipboard falhe)
+    // Clipboard moderno
     if (navigator.clipboard && window.isSecureContext) {
+  
       navigator.clipboard.writeText(html)
         .then(() => {
-          alert("HTML copiado!");
+          alert('HTML copiado!');
         })
         .catch(() => {
           fallbackCopy(html);
         });
+  
     } else {
+  
       fallbackCopy(html);
     }
   }
