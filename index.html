@@ -1,41 +1,30 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
   <title>Editor HTML</title>
 
-  <!-- CKEditor 5 Super Build -->
+  <!-- CKEditor Super Build -->
   <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
 
   <style>
 
     body {
-      margin: 20px;
       font-family: Arial, sans-serif;
+      margin: 20px;
       background: #f5f5f5;
-    }
-
-    h2 {
-      margin-bottom: 15px;
     }
 
     #container {
       background: white;
       padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     #editor {
       min-height: 300px;
-    }
-
-    button {
-      margin-top: 15px;
-      padding: 10px 15px;
-      cursor: pointer;
     }
 
     textarea {
@@ -45,7 +34,14 @@
       font-family: monospace;
     }
 
+    button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+
   </style>
+
 </head>
 
 <body>
@@ -66,92 +62,24 @@
 
   <script>
 
-    let editorInstance;
-    let updateTimeout;
+    let editor;
 
     CKEDITOR.ClassicEditor
-      .create(document.querySelector('#editor'), {
+      .create(document.querySelector('#editor'))
 
-        toolbar: {
-          items: [
+      .then(newEditor => {
 
-            'heading',
+        editor = newEditor;
 
-            '|',
-
-            'bold',
-            'italic',
-            'underline',
-
-            '|',
-
-            'bulletedList',
-            'numberedList',
-
-            '|',
-
-            'alignment',
-
-            '|',
-
-            'outdent',
-            'indent',
-
-            '|',
-
-            'undo',
-            'redo'
-
-          ]
-        },
-
-        heading: {
-          options: [
-
-            {
-              model: 'paragraph',
-              title: 'Parágrafo',
-              class: 'ck-heading_paragraph'
-            },
-
-            {
-              model: 'heading1',
-              view: 'h1',
-              title: 'Título 1'
-            },
-
-            {
-              model: 'heading2',
-              view: 'h2',
-              title: 'Título 2'
-            },
-
-            {
-              model: 'heading3',
-              view: 'h3',
-              title: 'Título 3'
-            }
-
-          ]
-        }
-
-      })
-
-      .then(editor => {
-
-        editorInstance = editor;
-
+        // Atualização live do HTML
         editor.model.document.on('change:data', () => {
 
-          clearTimeout(updateTimeout);
+          const html = editor.getData();
 
-          updateTimeout = setTimeout(() => {
-            updateLiveHTML();
-          }, 100);
+          document.getElementById('output').value =
+            html;
 
         });
-
-        updateLiveHTML();
 
       })
 
@@ -161,110 +89,24 @@
 
 
 
-
-    // =========================================
-    // LIVE HTML
-    // =========================================
-
-    function updateLiveHTML() {
-
-      if (!editorInstance) return;
-
-      let html = editorInstance.getData();
-
-      html = convertToLegacyHTML(html);
-
-      document.getElementById('output').value = html;
-    }
-
-
-
-
-    // =========================================
-    // CONVERSÃO LEGADO
-    // =========================================
-
-    function convertToLegacyHTML(html) {
-
-      // BOLD
-      html = html
-        .replace(/<strong>/g, '<span style="font-weight:bold;">')
-        .replace(/<\/strong>/g, '</span>')
-
-        .replace(/<b>/g, '<span style="font-weight:bold;">')
-        .replace(/<\/b>/g, '</span>');
-
-
-
-      // UNDERLINE
-      html = html
-        .replace(/<u>/g, '<span style="text-decoration:underline;">')
-        .replace(/<\/u>/g, '</span>');
-
-
-
-      return html;
-    }
-
-
-
-
-    // =========================================
-    // COPIAR HTML
-    // =========================================
-
     function copyHTML() {
 
       const html =
         document.getElementById('output').value;
 
-      if (
-        navigator.clipboard &&
-        window.isSecureContext
-      ) {
+      navigator.clipboard.writeText(html)
 
-        navigator.clipboard.writeText(html)
-          .then(() => {
+        .then(() => {
 
-            alert('HTML copiado!');
+          alert('HTML copiado!');
 
-          })
-          .catch(() => {
+        })
 
-            fallbackCopy(html);
+        .catch(err => {
 
-          });
+          console.error(err);
 
-      } else {
-
-        fallbackCopy(html);
-
-      }
-    }
-
-
-
-
-    // =========================================
-    // FALLBACK COPY
-    // =========================================
-
-    function fallbackCopy(text) {
-
-      const textarea =
-        document.createElement('textarea');
-
-      textarea.value = text;
-
-      document.body.appendChild(textarea);
-
-      textarea.select();
-
-      document.execCommand('copy');
-
-      document.body.removeChild(textarea);
-
-      alert('HTML copiado!');
+        });
     }
 
   </script>
