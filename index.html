@@ -78,12 +78,16 @@
       
     <div id="custom-toolbar">
     
-      <button onclick="makeAlphabeticList()">
-        A. B. C.
+      <button onclick="setListMode('numeric')">
+        1.2.3.
       </button>
     
-      <button onclick="makeRomanList()">
-        I. II. III.
+      <button onclick="setListMode('alpha')">
+        A.B.C.
+      </button>
+    
+      <button onclick="setListMode('roman')">
+        I.II.III.
       </button>
     
     </div>
@@ -97,6 +101,7 @@
 
   <script>
   let editorInstance;
+  let currentListMode = 'numeric';
   
   ClassicEditor
     .create(document.querySelector('#editor'), {
@@ -180,20 +185,7 @@
 
   function convertLists(html) {
   
-    // listas numeradas
-    html = html.replace(
-      /<ol>(.*?)<\/ol>/gs,
-      (match, content) => {
-  
-        const items = [...content.matchAll(/<li>(.*?)<\/li>/g)];
-  
-        return items.map((item, index) => {
-          return `<p>${index + 1}. ${item[1]}</p>`;
-        }).join('');
-      }
-    );
-  
-    // listas com bullets
+    // BULLET LIST
     html = html.replace(
       /<ul>(.*?)<\/ul>/gs,
       (match, content) => {
@@ -202,6 +194,44 @@
   
         return items.map(item => {
           return `<p>• ${item[1]}</p>`;
+        }).join('');
+      }
+    );
+  
+    // NUMBERED LIST
+    html = html.replace(
+      /<ol>(.*?)<\/ol>/gs,
+      (match, content) => {
+  
+        const items = [...content.matchAll(/<li>(.*?)<\/li>/g)];
+  
+        return items.map((item, index) => {
+  
+          let prefix = '';
+  
+          // NUMERIC
+          if (currentListMode === 'numeric') {
+            prefix = `${index + 1}.`;
+          }
+  
+          // ALPHA
+          else if (currentListMode === 'alpha') {
+            prefix = `${String.fromCharCode(65 + index)}.`;
+          }
+  
+          // ROMAN
+          else if (currentListMode === 'roman') {
+  
+            const roman = [
+              'I','II','III','IV','V',
+              'VI','VII','VIII','IX','X'
+            ];
+  
+            prefix = `${roman[index]}.`;
+          }
+  
+          return `<p>${prefix} ${item[1]}</p>`;
+  
         }).join('');
       }
     );
@@ -222,78 +252,15 @@
   }
 
 
-  function makeAlphabeticList() {
-  
-    const selection = window.getSelection().toString();
-  
-    if (!selection.trim()) {
-      alert("Selecione o texto primeiro.");
-      return;
-    }
-  
-    const lines = selection
-      .split('\n')
-      .filter(line => line.trim() !== '');
-  
-    let result = '';
-  
-    lines.forEach((line, index) => {
-  
-      const letter = String.fromCharCode(65 + index);
-  
-      result += `<p>${letter}. ${line}</p>`;
-    });
-  
-    replaceSelection(result);
-  
-    currentListMode = 'alpha';
-  }
+function setListMode(mode) {
 
-  function makeRomanList() {
+  currentListMode = mode;
 
-    const selection = window.getSelection().toString();
-  
-    if (!selection.trim()) {
-      alert("Selecione o texto primeiro.");
-      return;
-    }
-  
-    const roman = [
-      'I','II','III','IV','V',
-      'VI','VII','VIII','IX','X'
-    ];
-  
-    const lines = selection
-      .split('\n')
-      .filter(line => line.trim() !== '');
-  
-    let result = '';
-  
-    lines.forEach((line, index) => {
-  
-      result += `<p>${roman[index]}. ${line}</p>`;
-    });
-  
-    replaceSelection(result);
-  
-    currentListMode = 'roman';
-  }
+  document.querySelectorAll('#custom-toolbar button')
+    .forEach(btn => btn.style.background = '');
 
-  function replaceSelection(html) {
-  
-    editorInstance.model.change(writer => {
-  
-      const viewFragment =
-        editorInstance.data.processor.toView(html);
-  
-      const modelFragment =
-        editorInstance.data.toModel(viewFragment);
-  
-      editorInstance.model.insertContent(
-        modelFragment
-      );
-    });
-  }
+  event.target.style.background = '#ddd';
+}
     
   </script>  
 </body>
