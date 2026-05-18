@@ -276,24 +276,44 @@ function convertLists(html) {
 
 					if (level === 0) {
 
+						// 1. 2. 3.
 						prefix =
 							counter + '.';
 					}
-					else if (
-						level === 1
-					) {
-
+					
+					else if (level === 1) {
+					
+						// a. b. c.
 						prefix =
 							String.fromCharCode(
 								96 + counter
 							) + '.';
 					}
-					else {
-
+					
+					else if (level === 2) {
+					
+						// i. ii. iii.
 						prefix =
-							toRoman(
-								counter
+							toRoman(counter)
+							+ '.';
+					}
+					
+					else if (level === 3) {
+					
+						// A. B. C.
+						prefix =
+							String.fromCharCode(
+								64 + counter
 							) + '.';
+					}
+					
+					else {
+					
+						// I. II. III.
+						prefix =
+							toRoman(counter)
+								.toUpperCase()
+							+ '.';
 					}
 				}
 
