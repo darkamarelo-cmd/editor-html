@@ -223,6 +223,16 @@ function formatHTML(html) {
 
 function convertLists(html) {
 
+	function toRoman(num) {
+
+		const roman = [
+			'i','ii','iii','iv','v',
+			'vi','vii','viii','ix','x'
+		];
+
+		return roman[num - 1] || num;
+	}
+
 	// ======================
 	// BULLET LIST
 	// ======================
@@ -234,13 +244,33 @@ function convertLists(html) {
 			const items =
 				[
 					...content.matchAll(
-						/<li[^>]*>(.*?)<\/li>/gs
+						/<li([^>]*)>(.*?)<\/li>/gs
 					)
 				];
 
 			return items.map(item => {
 
-				return `<p>• ${item[1]}</p>`;
+				const attrs = item[1];
+				const text = item[2];
+
+				let symbol = '•';
+
+				if (
+					attrs.includes(
+						'list-indent-1'
+					)
+				) {
+					symbol = '○';
+				}
+				else if (
+					attrs.includes(
+						'list-indent-2'
+					)
+				) {
+					symbol = '■';
+				}
+
+				return `<p>${symbol} ${text}</p>`;
 
 			}).join('');
 		}
@@ -257,19 +287,78 @@ function convertLists(html) {
 			const items =
 				[
 					...content.matchAll(
-						/<li[^>]*>(.*?)<\/li>/gs
+						/<li([^>]*)>(.*?)<\/li>/gs
 					)
 				];
 
-			return items.map(
-				(item, index) => {
+			const counters = {
+				0: 0,
+				1: 0,
+				2: 0
+			};
 
-					return `<p>${
-						index + 1
-					}. ${item[1]}</p>`;
+			return items.map(item => {
 
+				const attrs = item[1];
+				const text = item[2];
+
+				let indent = 0;
+
+				if (
+					attrs.includes(
+						'list-indent-1'
+					)
+				) {
+					indent = 1;
 				}
-			).join('');
+				else if (
+					attrs.includes(
+						'list-indent-2'
+					)
+				) {
+					indent = 2;
+				}
+
+				counters[indent]++;
+
+				let prefix = '';
+
+				// nível 0
+				if (indent === 0) {
+
+					prefix =
+						counters[0] + '.';
+
+					counters[1] = 0;
+					counters[2] = 0;
+				}
+
+				// nível 1 (a,b,c)
+				else if (
+					indent === 1
+				) {
+
+					prefix =
+						String.fromCharCode(
+							96 +
+							counters[1]
+						) + '.';
+
+					counters[2] = 0;
+				}
+
+				// nível 2 (i,ii,iii)
+				else {
+
+					prefix =
+						toRoman(
+							counters[2]
+						) + '.';
+				}
+
+				return `<p>${prefix} ${text}</p>`;
+
+			}).join('');
 		}
 	);
 
