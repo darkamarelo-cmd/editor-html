@@ -123,29 +123,17 @@ ClassicEditor
 
         window.editor = editor;
 
-        const output =
-            document.getElementById('output');
-
         function updateHTML() {
-
-            if (!output) return;
-
-            output.value =
+            document.getElementById('output').value =
                 editor.getData();
         }
 
-        // Atualização em tempo real
         editor.model.document.on(
             'change:data',
-            () => {
-                updateHTML();
-            }
+            updateHTML
         );
 
-        // Atualiza logo ao abrir
-        setTimeout(() => {
-            updateHTML();
-        }, 100);
+        updateHTML();
 
         window.copyHTML = function () {
 
