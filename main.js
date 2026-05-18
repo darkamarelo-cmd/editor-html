@@ -189,4 +189,42 @@ const editorConfig = {
 	translations: [translations]
 };
 
-ClassicEditor.create(editorConfig);
+ClassicEditor
+	.create(editorConfig)
+	.then(editor => {
+
+		window.editor = editor;
+
+		const output =
+			document.getElementById('output');
+
+		function updateHTML() {
+
+			if (!output) return;
+
+			output.value =
+				editor.getData();
+		}
+
+		// Atualiza em tempo real
+		editor.model.document.on(
+			'change:data',
+			updateHTML
+		);
+
+		// Atualiza ao abrir
+		updateHTML();
+
+		window.copyHTML = function () {
+
+			navigator.clipboard
+				.writeText(output.value)
+				.then(() => {
+					alert('HTML copiado!');
+				});
+		};
+
+	})
+	.catch(error => {
+		console.error(error);
+	});
