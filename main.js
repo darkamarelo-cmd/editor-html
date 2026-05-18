@@ -559,7 +559,7 @@ function applyTableBorders(html) {
 
 	const editorCells =
 		document.querySelectorAll(
-			'.ck-content td'
+			'.ck-editor__editable td'
 		);
 
 	editorCells.forEach(
