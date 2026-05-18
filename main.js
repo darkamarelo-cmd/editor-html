@@ -257,7 +257,11 @@ ClassicEditor
 					'</span>'
 				);
 		
-			output.value = formatHTML(html);
+			html =
+				`<div style="text-align:left;">${html}</div>`;
+			
+			output.value =
+				formatHTML(html);
 		}
 
 		// Atualiza em tempo real
