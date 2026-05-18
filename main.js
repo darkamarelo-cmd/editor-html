@@ -340,7 +340,10 @@ function convertLists(html) {
 					);
 
 				const text =
-					clone.innerHTML.trim();
+					clone.innerHTML
+						.replace(/\n/g, ' ')
+						.replace(/\s+/g, ' ')
+						.trim();
 
 				const margin =
 					level * 20;
