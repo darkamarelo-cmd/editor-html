@@ -460,6 +460,98 @@ window.setTableBorder = function (type) {
 		});
 	});
 
+	// PREVIEW VISUAL
+window.editor.editing.view.change(writer => {
+
+	selectedCells.forEach(cell => {
+
+		const viewCell =
+			window.editor.editing.mapper
+				.toViewElement(cell);
+
+		if (!viewCell) return;
+
+		// limpa estilos anteriores
+		writer.removeStyle(
+			'border',
+			viewCell
+		);
+
+		writer.removeStyle(
+			'border-top',
+			viewCell
+		);
+
+		writer.removeStyle(
+			'border-right',
+			viewCell
+		);
+
+		writer.removeStyle(
+			'border-bottom',
+			viewCell
+		);
+
+		writer.removeStyle(
+			'border-left',
+			viewCell
+		);
+
+		switch(type) {
+
+			case 'all':
+
+				writer.setStyle(
+					'border',
+					'1px solid #000',
+					viewCell
+				);
+
+				break;
+
+			case 'top':
+
+				writer.setStyle(
+					'border-top',
+					'1px solid #000',
+					viewCell
+				);
+
+				break;
+
+			case 'right':
+
+				writer.setStyle(
+					'border-right',
+					'1px solid #000',
+					viewCell
+				);
+
+				break;
+
+			case 'bottom':
+
+				writer.setStyle(
+					'border-bottom',
+					'1px solid #000',
+					viewCell
+				);
+
+				break;
+
+			case 'left':
+
+				writer.setStyle(
+					'border-left',
+					'1px solid #000',
+					viewCell
+				);
+
+				break;
+		}
+	});
+});
+
 	console.log(
 		'Borda aplicada:',
 		type,
@@ -482,31 +574,25 @@ function applyTableBorders(html, editor) {
 	const htmlCells =
 		doc.querySelectorAll('td');
 
-	let htmlIndex = 0;
+	let cellIndex = 0;
 
-	// percorre o model
-	for (const element of
+	for (const table of
 		editor.model.document
 			.getRoot()
 			.getChildren()) {
 
-		// só tabelas
-		if (element.name !== 'table') {
+		if (table.name !== 'table') {
 			continue;
 		}
 
-		// rows
-		for (const row of
-			element.getChildren()) {
+		for (const row of table.getChildren()) {
 
-			// cells
-			for (const cell of
-				row.getChildren()) {
+			for (const cell of row.getChildren()) {
 
 				const htmlCell =
-					htmlCells[htmlIndex];
+					htmlCells[cellIndex];
 
-				htmlIndex++;
+				cellIndex++;
 
 				if (!htmlCell) {
 					continue;
@@ -521,42 +607,34 @@ function applyTableBorders(html, editor) {
 					continue;
 				}
 
-				switch(border) {
+				if (border === 'all') {
 
-					case 'all':
+					htmlCell.style.border =
+						'1px solid #000';
+				}
 
-						htmlCell.style.border =
-							'1px solid #000';
+				if (border === 'top') {
 
-						break;
+					htmlCell.style.borderTop =
+						'1px solid #000';
+				}
 
-					case 'top':
+				if (border === 'right') {
 
-						htmlCell.style.borderTop =
-							'1px solid #000';
+					htmlCell.style.borderRight =
+						'1px solid #000';
+				}
 
-						break;
+				if (border === 'bottom') {
 
-					case 'right':
+					htmlCell.style.borderBottom =
+						'1px solid #000';
+				}
 
-						htmlCell.style.borderRight =
-							'1px solid #000';
+				if (border === 'left') {
 
-						break;
-
-					case 'bottom':
-
-						htmlCell.style.borderBottom =
-							'1px solid #000';
-
-						break;
-
-					case 'left':
-
-						htmlCell.style.borderLeft =
-							'1px solid #000';
-
-						break;
+					htmlCell.style.borderLeft =
+						'1px solid #000';
 				}
 			}
 		}
