@@ -396,7 +396,6 @@ window.setTableBorder = function (type) {
 
 	const selectedCells = [];
 
-	// pega células selecionadas
 	for (const range of selection.getRanges()) {
 
 		for (const item of range.getItems()) {
@@ -407,8 +406,8 @@ window.setTableBorder = function (type) {
 		}
 	}
 
-	// fallback: uma única célula
-	if (!selectedCells.length) {
+	// fallback
+	if (selectedCells.length === 0) {
 
 		let parent =
 			selection.getFirstPosition()
@@ -435,7 +434,6 @@ window.setTableBorder = function (type) {
 		return;
 	}
 
-	// altera visual + salva atributo
 	window.editor.editing.view.change(writer => {
 
 		selectedCells.forEach(cell => {
@@ -446,106 +444,45 @@ window.setTableBorder = function (type) {
 
 			if (!viewCell) return;
 
-			// limpa visual antigo
-			writer.removeStyle(
-				'border',
+			// limpa marca anterior
+			writer.removeAttribute(
+				'data-border',
 				viewCell
 			);
 
-			writer.removeStyle(
-				'border-top',
-				viewCell
-			);
+			// remover
+			if (type === 'none') {
 
-			writer.removeStyle(
-				'border-right',
-				viewCell
-			);
+				writer.removeStyle(
+					'border',
+					viewCell
+				);
 
-			writer.removeStyle(
-				'border-bottom',
-				viewCell
-			);
+				return;
+			}
 
-			writer.removeStyle(
-				'border-left',
+			// marca célula
+			writer.setAttribute(
+				'data-border',
+				type,
 				viewCell
 			);
 
 			// preview visual
-			switch(type) {
-
-				case 'all':
-					writer.setStyle(
-						'border',
-						'1px solid #000',
-						viewCell
-					);
-					break;
-
-				case 'top':
-					writer.setStyle(
-						'border-top',
-						'1px solid #000',
-						viewCell
-					);
-					break;
-
-				case 'right':
-					writer.setStyle(
-						'border-right',
-						'1px solid #000',
-						viewCell
-					);
-					break;
-
-				case 'bottom':
-					writer.setStyle(
-						'border-bottom',
-						'1px solid #000',
-						viewCell
-					);
-					break;
-
-				case 'left':
-					writer.setStyle(
-						'border-left',
-						'1px solid #000',
-						viewCell
-					);
-					break;
-			}
-
-			// pega DOM real
-			const domCell =
-				window.editor
-					.editing
-					.view
-					.domConverter
-					.mapViewToDom(viewCell);
-
-			if (!domCell) return;
-
-			// salva atributo persistente
-			if (type === 'none') {
-
-				delete domCell.dataset.border;
-
-			} else {
-
-				domCell.dataset.border =
-					type;
-			}
+			writer.setStyle(
+				'border',
+				'1px solid #000',
+				viewCell
+			);
 		});
 	});
 
-	if (updateHTML) {
+	setTimeout(() => {
 	updateHTML();
-	}
+	}, 100);
 };
 
-
-function applyTableBorders(html) {
+function convertTableBorders(html) {
 
 	const parser =
 		new DOMParser();
@@ -556,12 +493,74 @@ function applyTableBorders(html) {
 			'text/html'
 		);
 
+	doc.querySelectorAll(
+		'td[data-border]'
+	).forEach(cell => {
+
+		const type =
+			cell.getAttribute(
+				'data-border'
+			);
+
+		let style = '';
+
+		switch(type) {
+
+			case 'all':
+				style =
+					'border:1px solid #000;';
+				break;
+
+			case 'top':
+				style =
+					'border-top:1px solid #000;';
+				break;
+
+			case 'right':
+				style =
+					'border-right:1px solid #000;';
+				break;
+
+			case 'bottom':
+				style =
+					'border-bottom:1px solid #000;';
+				break;
+
+			case 'left':
+				style =
+					'border-left:1px solid #000;';
+				break;
+		}
+
+		cell.style.cssText += style;
+		cell.removeAttribute(
+			'data-border'
+		);
+	});
+
+	return doc.body.innerHTML;
+}
+
+
+function syncTableStyles(html) {
+
+	const parser =
+		new DOMParser();
+
+	const doc =
+		parser.parseFromString(
+			html,
+			'text/html'
+		);
+
+	// HTML exportado
 	const htmlCells =
 		doc.querySelectorAll('td');
 
+	// HTML visual do editor
 	const editorCells =
 		document.querySelectorAll(
-			'.ck-editor__editable td'
+			'.ck-content td'
 		);
 
 	editorCells.forEach(
@@ -573,54 +572,34 @@ function applyTableBorders(html) {
 			if (!htmlCell) return;
 
 			const border =
-				editorCell.dataset.border;
+				editorCell.style.borderTop ||
+				editorCell.style.borderRight ||
+				editorCell.style.borderBottom ||
+				editorCell.style.borderLeft ||
+				editorCell.style.border;
 
 			if (!border) return;
 
-			switch(border) {
+			// copia estilos
+			htmlCell.style.border =
+				editorCell.style.border;
 
-				case 'all':
+			htmlCell.style.borderTop =
+				editorCell.style.borderTop;
 
-					htmlCell.style.border =
-						'1px solid #000';
+			htmlCell.style.borderRight =
+				editorCell.style.borderRight;
 
-					break;
+			htmlCell.style.borderBottom =
+				editorCell.style.borderBottom;
 
-				case 'top':
-
-					htmlCell.style.borderTop =
-						'1px solid #000';
-
-					break;
-
-				case 'right':
-
-					htmlCell.style.borderRight =
-						'1px solid #000';
-
-					break;
-
-				case 'bottom':
-
-					htmlCell.style.borderBottom =
-						'1px solid #000';
-
-					break;
-
-				case 'left':
-
-					htmlCell.style.borderLeft =
-						'1px solid #000';
-
-					break;
-			}
+			htmlCell.style.borderLeft =
+				editorCell.style.borderLeft;
 		}
 	);
 
 	return doc.body.innerHTML;
 }
-
-let updateHTML = null;
 
 ClassicEditor
 	.create(editorConfig)
@@ -631,13 +610,12 @@ ClassicEditor
 		const output =
 			document.getElementById('output');
 
-		updateHTML = function () {
+		function updateHTML() {
 		
 			if (!output) return;
 		
-			let html = window.editor.getData();
-
-			html = applyTableBorders(html);
+			let html = editor.getData();
+			html = syncTableStyles(html);
 		
 			// Conversão de negrito legado
 			html = html
