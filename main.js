@@ -396,21 +396,17 @@ window.setTableBorder = function (type) {
 
 	const selectedCells = [];
 
-	// pega múltiplas células selecionadas
 	for (const range of selection.getRanges()) {
 
 		for (const item of range.getItems()) {
 
-			if (
-				item.is &&
-				item.is('element', 'tableCell')
-			) {
+			if (item.name === 'tableCell') {
 				selectedCells.push(item);
 			}
 		}
 	}
 
-	// fallback: cursor dentro de uma célula
+	// fallback
 	if (selectedCells.length === 0) {
 
 		let parent =
@@ -429,7 +425,7 @@ window.setTableBorder = function (type) {
 		}
 	}
 
-	if (selectedCells.length === 0) {
+	if (!selectedCells.length) {
 
 		alert(
 			'Selecione uma célula da tabela'
@@ -438,35 +434,110 @@ window.setTableBorder = function (type) {
 		return;
 	}
 
-	window.editor.model.change(writer => {
+	window.editor.editing.view.change(writer => {
 
 		selectedCells.forEach(cell => {
 
+			const viewCell =
+				window.editor.editing.mapper
+					.toViewElement(cell);
+
+			if (!viewCell) return;
+
+			// limpa marca anterior
+			writer.removeAttribute(
+				'data-border',
+				viewCell
+			);
+
+			// remover
 			if (type === 'none') {
 
-				writer.removeAttribute(
-					'dataBorder',
-					cell
+				writer.removeStyle(
+					'border',
+					viewCell
 				);
 
 				return;
 			}
 
+			// marca célula
 			writer.setAttribute(
-				'dataBorder',
+				'data-border',
 				type,
-				cell
+				viewCell
+			);
+
+			// preview visual
+			writer.setStyle(
+				'border',
+				'1px solid #000',
+				viewCell
 			);
 		});
 	});
 
-	console.log(
-		'Borda aplicada:',
-		type,
-		selectedCells.length,
-		'células'
-	);
+	updateHTML();
 };
+
+function convertTableBorders(html) {
+
+	const parser =
+		new DOMParser();
+
+	const doc =
+		parser.parseFromString(
+			html,
+			'text/html'
+		);
+
+	doc.querySelectorAll(
+		'td[data-border]'
+	).forEach(cell => {
+
+		const type =
+			cell.getAttribute(
+				'data-border'
+			);
+
+		let style = '';
+
+		switch(type) {
+
+			case 'all':
+				style =
+					'border:1px solid #000;';
+				break;
+
+			case 'top':
+				style =
+					'border-top:1px solid #000;';
+				break;
+
+			case 'right':
+				style =
+					'border-right:1px solid #000;';
+				break;
+
+			case 'bottom':
+				style =
+					'border-bottom:1px solid #000;';
+				break;
+
+			case 'left':
+				style =
+					'border-left:1px solid #000;';
+				break;
+		}
+
+		cell.style.cssText += style;
+		cell.removeAttribute(
+			'data-border'
+		);
+	});
+
+	return doc.body.innerHTML;
+}
 
 
 ClassicEditor
@@ -482,8 +553,8 @@ ClassicEditor
 		
 			if (!output) return;
 		
-			let html =
-				editor.getData();
+			let html = editor.getData();
+			html = convertTableBorders(html);
 		
 			// Conversão de negrito legado
 			html = html
