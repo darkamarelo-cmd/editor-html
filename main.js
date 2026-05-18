@@ -540,6 +540,65 @@ function convertTableBorders(html) {
 }
 
 
+function syncTableStyles(html) {
+
+	const parser =
+		new DOMParser();
+
+	const doc =
+		parser.parseFromString(
+			html,
+			'text/html'
+		);
+
+	// HTML exportado
+	const htmlCells =
+		doc.querySelectorAll('td');
+
+	// HTML visual do editor
+	const editorCells =
+		document.querySelectorAll(
+			'.ck-content td'
+		);
+
+	editorCells.forEach(
+		(editorCell, index) => {
+
+			const htmlCell =
+				htmlCells[index];
+
+			if (!htmlCell) return;
+
+			const border =
+				editorCell.style.borderTop ||
+				editorCell.style.borderRight ||
+				editorCell.style.borderBottom ||
+				editorCell.style.borderLeft ||
+				editorCell.style.border;
+
+			if (!border) return;
+
+			// copia estilos
+			htmlCell.style.border =
+				editorCell.style.border;
+
+			htmlCell.style.borderTop =
+				editorCell.style.borderTop;
+
+			htmlCell.style.borderRight =
+				editorCell.style.borderRight;
+
+			htmlCell.style.borderBottom =
+				editorCell.style.borderBottom;
+
+			htmlCell.style.borderLeft =
+				editorCell.style.borderLeft;
+		}
+	);
+
+	return doc.body.innerHTML;
+}
+
 ClassicEditor
 	.create(editorConfig)
 	.then(editor => {
@@ -554,7 +613,7 @@ ClassicEditor
 			if (!output) return;
 		
 			let html = editor.getData();
-			html = convertTableBorders(html);
+			html = syncTableStyles(html);
 		
 			// Conversão de negrito legado
 			html = html
