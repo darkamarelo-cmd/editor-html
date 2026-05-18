@@ -476,24 +476,29 @@ window.editor.editing.view.change(writer => {
 			'border',
 			viewCell
 		);
-
+		
 		writer.removeStyle(
 			'border-top',
 			viewCell
 		);
-
+		
 		writer.removeStyle(
 			'border-right',
 			viewCell
 		);
-
+		
 		writer.removeStyle(
 			'border-bottom',
 			viewCell
 		);
-
+		
 		writer.removeStyle(
 			'border-left',
+			viewCell
+		);
+		
+		writer.removeStyle(
+			'box-shadow',
 			viewCell
 		);
 
@@ -502,8 +507,8 @@ window.editor.editing.view.change(writer => {
 			case 'all':
 
 				writer.setStyle(
-					'border',
-					'1px solid #000',
+					'box-shadow',
+					'inset 0 0 0 1px #000',
 					viewCell
 				);
 
@@ -512,8 +517,8 @@ window.editor.editing.view.change(writer => {
 			case 'top':
 
 				writer.setStyle(
-					'border-top',
-					'1px solid #000',
+					'box-shadow',
+					'inset 0 1px 0 #000',
 					viewCell
 				);
 
@@ -522,8 +527,8 @@ window.editor.editing.view.change(writer => {
 			case 'right':
 
 				writer.setStyle(
-					'border-right',
-					'1px solid #000',
+					'box-shadow',
+					'inset -1px 0 0 #000',
 					viewCell
 				);
 
@@ -532,8 +537,8 @@ window.editor.editing.view.change(writer => {
 			case 'bottom':
 
 				writer.setStyle(
-					'border-bottom',
-					'1px solid #000',
+					'box-shadow',
+					'inset 0 -1px 0 #000',
 					viewCell
 				);
 
@@ -542,8 +547,8 @@ window.editor.editing.view.change(writer => {
 			case 'left':
 
 				writer.setStyle(
-					'border-left',
-					'1px solid #000',
+					'box-shadow',
+					'inset 1px 0 0 #000',
 					viewCell
 				);
 
