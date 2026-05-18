@@ -446,48 +446,15 @@ let updateHTML = null;
 
 function TableBorderPlugin(editor) {
 
-	// 1. Schema
+	// 1. Schema (OK)
 	editor.model.schema.extend('tableCell', {
 		allowAttributes: ['tableBorder']
 	});
 
-	// 2. Upcast (HTML → Model)
-	editor.conversion.for('upcast').elementToAttribute({
-		view: {
-			name: 'td',
-			styles: {
-				border: true,
-				'border-top': true,
-				'border-right': true,
-				'border-bottom': true,
-				'border-left': true
-			}
-		},
-		model: {
-			key: 'tableBorder',
-			value: viewElement => {
-
-				const border = viewElement.getStyle('border');
-				const top = viewElement.getStyle('border-top');
-				const right = viewElement.getStyle('border-right');
-				const bottom = viewElement.getStyle('border-bottom');
-				const left = viewElement.getStyle('border-left');
-
-				if (border) return 'all';
-				if (top) return 'top';
-				if (right) return 'right';
-				if (bottom) return 'bottom';
-				if (left) return 'left';
-
-				return null;
-			}
-		}
-	});
-
-	// 3. Downcast (Model → View) ✔ CORRIGIDO
+	// 2. DOWNCAST (MODEL → VIEW) ✔ ESSENCIAL
 	editor.conversion.for('downcast').attributeToElement({
 		model: 'tableBorder',
-		view: (value, { writer }) => {
+		view: (value) => {
 
 			if (!value) return;
 
@@ -499,17 +466,33 @@ function TableBorderPlugin(editor) {
 				left: { 'border-left': '1px solid #000' }
 			};
 
-			const style = styles[value];
-
-			if (!style) return;
-
-			// IMPORTANTE: aplica direto no td (sem duplicar elemento)
 			return {
 				name: 'td',
-				styles: style
+				styles: styles[value]
 			};
+		}
+	});
+
+	// 3. UPCAST (SIMPLIFICADO E SEGURO)
+	editor.conversion.for('upcast').elementToAttribute({
+		view: {
+			name: 'td'
 		},
-		converterPriority: 'high'
+		model: {
+			key: 'tableBorder',
+			value: viewElement => {
+
+				const style = viewElement.getStyle?.() || {};
+
+				if (style.border) return 'all';
+				if (style['border-top']) return 'top';
+				if (style['border-right']) return 'right';
+				if (style['border-bottom']) return 'bottom';
+				if (style['border-left']) return 'left';
+
+				return null;
+			}
+		}
 	});
 }
 
