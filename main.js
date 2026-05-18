@@ -199,11 +199,32 @@ ClassicEditor
 			document.getElementById('output');
 
 		function updateHTML() {
-
+		
 			if (!output) return;
-
-			output.value =
+		
+			let html =
 				editor.getData();
+		
+			// Conversão de negrito legado
+			html = html
+				.replace(
+					/<strong>/g,
+					'<span style="font-weight:bold;">'
+				)
+				.replace(
+					/<\/strong>/g,
+					'</span>'
+				)
+				.replace(
+					/<b>/g,
+					'<span style="font-weight:bold;">'
+				)
+				.replace(
+					/<\/b>/g,
+					'</span>'
+				);
+		
+			output.value = html;
 		}
 
 		// Atualiza em tempo real
