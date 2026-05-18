@@ -1,115 +1,39 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-
-  <meta charset="UTF-8" />
-
-  <title>Editor HTML</title>
-
-  <!-- CKEditor Super Build -->
-  <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
-
-  <style>
-
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f5f5f5;
-    }
-
-    #container {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-    }
-
-    #editor {
-      min-height: 300px;
-    }
-
-    textarea {
-      width: 100%;
-      height: 250px;
-      margin-top: 20px;
-      font-family: monospace;
-    }
-
-    button {
-      margin-top: 15px;
-      padding: 10px 15px;
-      cursor: pointer;
-    }
-
-  </style>
-
-</head>
-
-<body>
-
-  <h2>Editor HTML</h2>
-
-  <div id="container">
-
-    <div id="editor"></div>
-
-    <button onclick="copyHTML()">
-      Copiar HTML
-    </button>
-
-    <textarea id="output" readonly></textarea>
-
-  </div>
-
-  <script>
-
-    let editor;
-
-    CKEDITOR.ClassicEditor
-      .create(document.querySelector('#editor'))
-
-      .then(newEditor => {
-
-        editor = newEditor;
-
-        // Atualização live do HTML
-        editor.model.document.on('change:data', () => {
-
-          const html = editor.getData();
-
-          document.getElementById('output').value =
-            html;
-
-        });
-
-      })
-
-      .catch(error => {
-        console.error(error);
-      });
-
-
-
-    function copyHTML() {
-
-      const html =
-        document.getElementById('output').value;
-
-      navigator.clipboard.writeText(html)
-
-        .then(() => {
-
-          alert('HTML copiado!');
-
-        })
-
-        .catch(err => {
-
-          console.error(err);
-
-        });
-    }
-
-  </script>
-
-</body>
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>CKEditor 5 Sample</title>
+		<link rel="icon" type="image/png" href="https://ckeditor.com/assets/images/favicons/32x32.png" sizes="32x32">
+		<link rel="icon" type="image/png" href="https://ckeditor.com/assets/images/favicons/96x96.png" sizes="96x96">
+		<link rel="apple-touch-icon" type="image/png" href="https://ckeditor.com/assets/images/favicons/120x120.png" sizes="120x120">
+		<link rel="apple-touch-icon" type="image/png" href="https://ckeditor.com/assets/images/favicons/152x152.png" sizes="152x152">
+		<link rel="apple-touch-icon" type="image/png" href="https://ckeditor.com/assets/images/favicons/167x167.png" sizes="167x167">
+		<link rel="apple-touch-icon" type="image/png" href="https://ckeditor.com/assets/images/favicons/180x180.png" sizes="180x180">
+		<link rel="stylesheet" href="./style.css">
+		<link rel="stylesheet" href="./ckeditor5/ckeditor5.css">
+	</head>
+	<body>
+		<div class="main-container">
+			<div class="editor-container editor-container_classic-editor editor-container_include-fullscreen">
+				<div class="editor-container__editor"><div id="editor"></div></div>
+			</div>
+		</div>
+		<script type="importmap">
+		{
+			"imports": {
+				"ckeditor5": "./ckeditor5/ckeditor5.js",
+				"ckeditor5/": "./ckeditor5/"
+			}
+		}
+		</script>
+		<script type="module" src="./main.js"></script>
+		<!-- A friendly reminder to run on a server, remove this during the integration. -->
+		<script>
+			window.onload = function() {
+				if ( window.location.protocol === "file:" ) {
+					alert( "This sample requires an HTTP server. Please serve this file with a web server." );
+				}
+			};
+		</script>
+	</body>
 </html>
