@@ -251,10 +251,14 @@ function convertLists(html) {
 			return items.map(item => {
 
 				const attrs = item[1];
-				const text = item[2];
+				const text =
+					item[2]
+						.trim()
+						.replace(/\n/g, '');
 
 				let symbol = '•';
 
+				// indentação
 				if (
 					attrs.includes(
 						'list-indent-1'
@@ -291,69 +295,60 @@ function convertLists(html) {
 					)
 				];
 
-			const counters = {
-				0: 0,
-				1: 0,
-				2: 0
-			};
+			let numeric = 0;
+			let alpha = 0;
+			let roman = 0;
 
 			return items.map(item => {
 
 				const attrs = item[1];
-				const text = item[2];
 
-				let indent = 0;
-
-				if (
-					attrs.includes(
-						'list-indent-1'
-					)
-				) {
-					indent = 1;
-				}
-				else if (
-					attrs.includes(
-						'list-indent-2'
-					)
-				) {
-					indent = 2;
-				}
-
-				counters[indent]++;
+				const text =
+					item[2]
+						.trim()
+						.replace(/\n/g, '');
 
 				let prefix = '';
 
 				// nível 0
-				if (indent === 0) {
+				if (
+					!attrs.includes(
+						'list-indent-'
+					)
+				) {
+
+					numeric++;
+					alpha = 0;
+					roman = 0;
 
 					prefix =
-						counters[0] + '.';
-
-					counters[1] = 0;
-					counters[2] = 0;
+						numeric + '.';
 				}
 
-				// nível 1 (a,b,c)
+				// nível 1
 				else if (
-					indent === 1
+					attrs.includes(
+						'list-indent-1'
+					)
 				) {
+
+					alpha++;
+					roman = 0;
 
 					prefix =
 						String.fromCharCode(
-							96 +
-							counters[1]
+							96 + alpha
 						) + '.';
-
-					counters[2] = 0;
 				}
 
-				// nível 2 (i,ii,iii)
+				// nível 2
 				else {
 
+					roman++;
+
 					prefix =
-						toRoman(
-							counters[2]
-						) + '.';
+						toRoman(roman)
+						+ '.';
 				}
 
 				return `<p>${prefix} ${text}</p>`;
