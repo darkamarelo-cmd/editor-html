@@ -221,6 +221,60 @@ function formatHTML(html) {
 	return result.trim();
 }
 
+function convertLists(html) {
+
+	// ======================
+	// BULLET LIST
+	// ======================
+
+	html = html.replace(
+		/<ul>(.*?)<\/ul>/gs,
+		(match, content) => {
+
+			const items =
+				[
+					...content.matchAll(
+						/<li>(.*?)<\/li>/g
+					)
+				];
+
+			return items.map(item => {
+
+				return `<p>• ${item[1]}</p>`;
+
+			}).join('');
+		}
+	);
+
+	// ======================
+	// NUMBERED LIST
+	// ======================
+
+	html = html.replace(
+		/<ol>(.*?)<\/ol>/gs,
+		(match, content) => {
+
+			const items =
+				[
+					...content.matchAll(
+						/<li>(.*?)<\/li>/g
+					)
+				];
+
+			return items.map(
+				(item, index) => {
+
+					return `<p>${
+						index + 1
+					}. ${item[1]}</p>`;
+
+				}
+			).join('');
+		}
+	);
+
+	return html;
+}
 
 ClassicEditor
 	.create(editorConfig)
@@ -256,7 +310,7 @@ ClassicEditor
 					/<\/b>/g,
 					'</span>'
 				);
-		
+			html = convertLists(html);
 			html =
 				`<div style="text-align:left;">${html}</div>`;
 			
