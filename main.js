@@ -332,8 +332,13 @@ function convertLists(html) {
 				const text =
 					clone.innerHTML.trim();
 
+				const margin =
+					level * 20;
+				
 				result +=
-					`<p>${prefix} ${text}</p>`;
+					`<p style="margin-left:${margin}px;">
+						${prefix} ${text}
+					</p>`;
 
 				// processa sublista
 				li.querySelectorAll(
