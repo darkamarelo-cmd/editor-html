@@ -387,54 +387,85 @@ function convertLists(html) {
 	return result;
 }
 
-window.setCellBorder = function () {
+window.setTableBorder = function (type) {
 
 	if (!window.editor) return;
 
-	const view =
-		window.editor.editing.view;
+	const selection =
+		window.editor.model.document.selection;
 
-	view.change(writer => {
+	const selectedCells = [];
 
-		const selection =
-			view.document.selection;
+	// pega múltiplas células selecionadas
+	for (const range of selection.getRanges()) {
+
+		for (const item of range.getItems()) {
+
+			if (
+				item.is &&
+				item.is('element', 'tableCell')
+			) {
+				selectedCells.push(item);
+			}
+		}
+	}
+
+	// fallback: cursor dentro de uma célula
+	if (selectedCells.length === 0) {
 
 		let parent =
 			selection.getFirstPosition()
 				.parent;
 
-		// sobe até td/th
 		while (
 			parent &&
-			parent.name !== 'td' &&
-			parent.name !== 'th'
+			parent.name !== 'tableCell'
 		) {
 			parent = parent.parent;
 		}
 
-		if (!parent) {
-
-			alert(
-				'Selecione uma célula da tabela'
-			);
-
-			return;
+		if (parent) {
+			selectedCells.push(parent);
 		}
+	}
 
-		writer.setStyle(
-			'border',
-			'1px solid #000',
-			parent
+	if (selectedCells.length === 0) {
+
+		alert(
+			'Selecione uma célula da tabela'
 		);
 
-		writer.setStyle(
-			'padding',
-			'6px',
-			parent
-		);
+		return;
+	}
+
+	window.editor.model.change(writer => {
+
+		selectedCells.forEach(cell => {
+
+			if (type === 'none') {
+
+				writer.removeAttribute(
+					'dataBorder',
+					cell
+				);
+
+				return;
+			}
+
+			writer.setAttribute(
+				'dataBorder',
+				type,
+				cell
+			);
+		});
 	});
 
-	updateHTML();
+	console.log(
+		'Borda aplicada:',
+		type,
+		selectedCells.length,
+		'células'
+	);
 };
 
 
