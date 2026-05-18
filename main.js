@@ -396,21 +396,20 @@ window.setTableBorder = function (type) {
 
 	const selectedCells = [];
 
-	// pega múltiplas células selecionadas
+	// tenta achar células selecionadas
 	for (const range of selection.getRanges()) {
 
 		for (const item of range.getItems()) {
 
 			if (
-				item.is &&
-				item.is('element', 'tableCell')
+				item.name === 'tableCell'
 			) {
 				selectedCells.push(item);
 			}
 		}
 	}
 
-	// fallback: cursor dentro de uma célula
+	// fallback: cursor dentro da célula
 	if (selectedCells.length === 0) {
 
 		let parent =
@@ -429,7 +428,7 @@ window.setTableBorder = function (type) {
 		}
 	}
 
-	if (selectedCells.length === 0) {
+	if (!selectedCells.length) {
 
 		alert(
 			'Selecione uma célula da tabela'
@@ -438,33 +437,28 @@ window.setTableBorder = function (type) {
 		return;
 	}
 
-	window.editor.model.change(writer => {
+	// TESTE VISUAL
+	window.editor.editing.view.change(writer => {
 
 		selectedCells.forEach(cell => {
 
-			if (type === 'none') {
+			const viewCell =
+				window.editor.editing.mapper
+					.toViewElement(cell);
 
-				writer.removeAttribute(
-					'dataBorder',
-					cell
-				);
+			if (!viewCell) return;
 
-				return;
-			}
-
-			writer.setAttribute(
-				'dataBorder',
-				type,
-				cell
+			writer.setStyle(
+				'background',
+				'#ffff99',
+				viewCell
 			);
 		});
 	});
 
 	console.log(
-		'Borda aplicada:',
-		type,
-		selectedCells.length,
-		'células'
+		'Células encontradas:',
+		selectedCells.length
 	);
 };
 
