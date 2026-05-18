@@ -539,7 +539,9 @@ window.setTableBorder = function (type) {
 		});
 	});
 
+	if (updateHTML) {
 	updateHTML();
+	}
 };
 
 
@@ -618,6 +620,7 @@ function applyTableBorders(html) {
 	return doc.body.innerHTML;
 }
 
+let updateHTML = null;
 
 ClassicEditor
 	.create(editorConfig)
@@ -628,7 +631,7 @@ ClassicEditor
 		const output =
 			document.getElementById('output');
 
-		function updateHTML() {
+		updateHTML = function () {
 		
 			if (!output) return;
 		
