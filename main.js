@@ -387,6 +387,49 @@ function convertLists(html) {
 	return result;
 }
 
+window.setCellBorder = function () {
+
+	if (!window.editor) return;
+
+	const selection =
+		window.editor.model.document.selection;
+
+	const position =
+		selection.getFirstPosition();
+
+	let parent =
+		position.parent;
+
+	// sobe até encontrar tableCell
+	while (
+		parent &&
+		parent.name !== 'tableCell'
+	) {
+		parent = parent.parent;
+	}
+
+	if (!parent) {
+		alert(
+			'Selecione uma célula da tabela'
+		);
+		return;
+	}
+
+	window.editor.model.change(
+		writer => {
+
+			writer.setAttribute(
+				'htmlStyle',
+				'border:1px solid #000;',
+				parent
+			);
+		}
+	);
+
+	updateHTML();
+};
+
+
 ClassicEditor
 	.create(editorConfig)
 	.then(editor => {
