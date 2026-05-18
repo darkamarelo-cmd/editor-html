@@ -99,8 +99,7 @@ const editorConfig = {
 		TableToolbar,
 		TextTransformation,
 		TodoList,
-		Underline,
-		TableBorderPlugin
+		Underline
 	],
 	licenseKey: LICENSE_KEY,
 	fullscreen: {
@@ -401,105 +400,145 @@ window.setTableBorder = function (type) {
 
 		for (const item of range.getItems()) {
 
-			if (item.is && item.is('element', 'tableCell')) {
+			if (item.name === 'tableCell') {
 				selectedCells.push(item);
 			}
 		}
 	}
 
 	// fallback
-	if (!selectedCells.length) {
+	if (selectedCells.length === 0) {
 
 		let parent =
-			selection.getFirstPosition()?.parent;
+			selection.getFirstPosition()
+				.parent;
 
-		while (parent && parent.name !== 'tableCell') {
+		while (
+			parent &&
+			parent.name !== 'tableCell'
+		) {
 			parent = parent.parent;
 		}
 
-		if (parent) selectedCells.push(parent);
+		if (parent) {
+			selectedCells.push(parent);
+		}
 	}
 
 	if (!selectedCells.length) {
-		alert('Selecione uma célula da tabela');
+
+		alert(
+			'Selecione uma célula da tabela'
+		);
+
 		return;
 	}
 
-	window.editor.model.change(writer => {
+	window.editor.editing.view.change(writer => {
 
 		selectedCells.forEach(cell => {
 
+			const viewCell =
+				window.editor.editing.mapper
+					.toViewElement(cell);
+
+			if (!viewCell) return;
+
+			// limpa marca anterior
+			writer.removeAttribute(
+				'data-border',
+				viewCell
+			);
+
+			// remover
 			if (type === 'none') {
-				writer.removeAttribute('dataBorder', cell);
-			} else {
-				writer.setAttribute('dataBorder', type, cell);
+
+				writer.removeStyle(
+					'border',
+					viewCell
+				);
+
+				return;
 			}
+
+			// marca célula
+			writer.setAttribute(
+				'data-border',
+				type,
+				viewCell
+			);
+
+			// preview visual
+			writer.setStyle(
+				'border',
+				'1px solid #000',
+				viewCell
+			);
 		});
 	});
+
+	updateHTML();
 };
 
+function convertTableBorders(html) {
 
+	const parser =
+		new DOMParser();
 
-function TableBorderPlugin(editor) {
+	const doc =
+		parser.parseFromString(
+			html,
+			'text/html'
+		);
 
-	// schema
-	editor.model.schema.extend('tableCell', {
-		allowAttributes: ['dataBorder']
-	});
+	doc.querySelectorAll(
+		'td[data-border]'
+	).forEach(cell => {
 
-	// upcast (HTML → model)
-	editor.conversion.for('upcast').attributeToAttribute({
-		view: {
-			name: 'td',
-			styles: {
-				border: true,
-				'border-top': true,
-				'border-right': true,
-				'border-bottom': true,
-				'border-left': true
-			}
-		},
-		model: {
-			key: 'dataBorder',
-			value: viewElement => {
+		const type =
+			cell.getAttribute(
+				'data-border'
+			);
 
-				if (viewElement.getStyle('border')) return 'all';
-				if (viewElement.getStyle('border-top')) return 'top';
-				if (viewElement.getStyle('border-right')) return 'right';
-				if (viewElement.getStyle('border-bottom')) return 'bottom';
-				if (viewElement.getStyle('border-left')) return 'left';
+		let style = '';
 
-				return null;
-			}
+		switch(type) {
+
+			case 'all':
+				style =
+					'border:1px solid #000;';
+				break;
+
+			case 'top':
+				style =
+					'border-top:1px solid #000;';
+				break;
+
+			case 'right':
+				style =
+					'border-right:1px solid #000;';
+				break;
+
+			case 'bottom':
+				style =
+					'border-bottom:1px solid #000;';
+				break;
+
+			case 'left':
+				style =
+					'border-left:1px solid #000;';
+				break;
 		}
+
+		cell.style.cssText += style;
+		cell.removeAttribute(
+			'data-border'
+		);
 	});
 
-	// downcast (model → HTML)
-	editor.conversion.for('downcast').attributeToElement({
-		model: 'dataBorder',
-		view: (value, { writer }) => {
-
-			if (!value) return;
-
-			const map = {
-				all: { border: '1px solid #000' },
-				top: { 'border-top': '1px solid #000' },
-				right: { 'border-right': '1px solid #000' },
-				bottom: { 'border-bottom': '1px solid #000' },
-				left: { 'border-left': '1px solid #000' }
-			};
-
-			const style = map[value];
-
-			if (!style) return;
-
-			return {
-				name: 'td',
-				styles: style
-			};
-		}
-	});
+	return doc.body.innerHTML;
 }
+
 
 ClassicEditor
 	.create(editorConfig)
@@ -515,6 +554,7 @@ ClassicEditor
 			if (!output) return;
 		
 			let html = editor.getData();
+			html = convertTableBorders(html);
 		
 			// Conversão de negrito legado
 			html = html
