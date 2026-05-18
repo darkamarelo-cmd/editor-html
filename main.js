@@ -391,40 +391,48 @@ window.setCellBorder = function () {
 
 	if (!window.editor) return;
 
-	const selection =
-		window.editor.model.document.selection;
+	const view =
+		window.editor.editing.view;
 
-	const position =
-		selection.getFirstPosition();
+	view.change(writer => {
 
-	let parent =
-		position.parent;
+		const selection =
+			view.document.selection;
 
-	// sobe até encontrar tableCell
-	while (
-		parent &&
-		parent.name !== 'tableCell'
-	) {
-		parent = parent.parent;
-	}
+		let parent =
+			selection.getFirstPosition()
+				.parent;
 
-	if (!parent) {
-		alert(
-			'Selecione uma célula da tabela'
-		);
-		return;
-	}
-
-	window.editor.model.change(
-		writer => {
-
-			writer.setAttribute(
-				'htmlStyle',
-				'border:1px solid #000;',
-				parent
-			);
+		// sobe até td/th
+		while (
+			parent &&
+			parent.name !== 'td' &&
+			parent.name !== 'th'
+		) {
+			parent = parent.parent;
 		}
-	);
+
+		if (!parent) {
+
+			alert(
+				'Selecione uma célula da tabela'
+			);
+
+			return;
+		}
+
+		writer.setStyle(
+			'border',
+			'1px solid #000',
+			parent
+		);
+
+		writer.setStyle(
+			'padding',
+			'6px',
+			parent
+		);
+	});
 
 	updateHTML();
 };
