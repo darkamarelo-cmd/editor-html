@@ -349,7 +349,7 @@ function convertLists(html) {
 					level * 20;
 				
 				result +=
-					`<p style="margin-left:${margin}px;">${prefix} ${text}</p>`;
+					`\n<p style="margin-left:${margin}px;">${prefix} ${text}</p>\n`;
 
 				// processa sublista
 				li.querySelectorAll(
