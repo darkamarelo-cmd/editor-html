@@ -603,6 +603,11 @@ function applyTableBorders(html, editor) {
 						'dataBorder'
 					);
 
+				console.log(
+						'border attr:',
+						border
+					);
+
 				if (!border) {
 					continue;
 				}
@@ -648,6 +653,15 @@ ClassicEditor
 	.then(editor => {
 
 		window.editor = editor;
+
+		editor.model.schema.extend(
+			'tableCell',
+			{
+				allowAttributes: [
+					'dataBorder'
+				]
+			}
+		);
 
 		const output =
 			document.getElementById('output');
