@@ -189,6 +189,39 @@ const editorConfig = {
 	translations: [translations]
 };
 
+function formatHTML(html) {
+
+	const tab = '  ';
+	let result = '';
+	let indent = '';
+
+	html
+		.replace(/>\s*</g, '><')
+		.split(/(?=<)|(?<=>)/g)
+		.forEach(node => {
+
+			if (!node.trim()) return;
+
+			if (node.match(/^<\/\w/)) {
+				indent = indent.substring(tab.length);
+			}
+
+			result += indent + node.trim() + '\n';
+
+			if (
+				node.match(/^<\w[^>]*[^/]>/) &&
+				!node.startsWith('<input') &&
+				!node.startsWith('<br') &&
+				!node.startsWith('<img')
+			) {
+				indent += tab;
+			}
+		});
+
+	return result.trim();
+}
+
+
 ClassicEditor
 	.create(editorConfig)
 	.then(editor => {
@@ -224,7 +257,7 @@ ClassicEditor
 					'</span>'
 				);
 		
-			output.value = html;
+			output.value = formatHTML(html);
 		}
 
 		// Atualiza em tempo real
