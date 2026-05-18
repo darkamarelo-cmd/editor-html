@@ -256,19 +256,29 @@ function convertLists(html) {
 
 				let prefix = '';
 
-				// BULLET
-				if (
-					list.tagName === 'UL'
-				) {
-
-					if (level === 0)
-						prefix = '•';
-
-					else if (level === 1)
-						prefix = '○';
-
-					else
-						prefix = '■';
+				// BULLET / TODO LIST
+				if (list.tagName === 'UL') {
+				
+					// lista checkbox do CKEditor
+					const isTodoList =
+						list.classList.contains('todo-list');
+				
+					// checkbox NÃO usa bullet
+					if (isTodoList) {
+				
+						prefix = '';
+				
+					} else {
+				
+						if (level === 0)
+							prefix = '•';
+				
+						else if (level === 1)
+							prefix = '○';
+				
+						else
+							prefix = '■';
+					}
 				}
 
 				// NUMBERED
