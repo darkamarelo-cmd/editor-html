@@ -468,6 +468,102 @@ window.setTableBorder = function (type) {
 	);
 };
 
+function applyTableBorders(html, editor) {
+
+	const parser =
+		new DOMParser();
+
+	const doc =
+		parser.parseFromString(
+			html,
+			'text/html'
+		);
+
+	const htmlCells =
+		doc.querySelectorAll('td');
+
+	let htmlIndex = 0;
+
+	// percorre o model
+	for (const element of
+		editor.model.document
+			.getRoot()
+			.getChildren()) {
+
+		// só tabelas
+		if (element.name !== 'table') {
+			continue;
+		}
+
+		// rows
+		for (const row of
+			element.getChildren()) {
+
+			// cells
+			for (const cell of
+				row.getChildren()) {
+
+				const htmlCell =
+					htmlCells[htmlIndex];
+
+				htmlIndex++;
+
+				if (!htmlCell) {
+					continue;
+				}
+
+				const border =
+					cell.getAttribute(
+						'dataBorder'
+					);
+
+				if (!border) {
+					continue;
+				}
+
+				switch(border) {
+
+					case 'all':
+
+						htmlCell.style.border =
+							'1px solid #000';
+
+						break;
+
+					case 'top':
+
+						htmlCell.style.borderTop =
+							'1px solid #000';
+
+						break;
+
+					case 'right':
+
+						htmlCell.style.borderRight =
+							'1px solid #000';
+
+						break;
+
+					case 'bottom':
+
+						htmlCell.style.borderBottom =
+							'1px solid #000';
+
+						break;
+
+					case 'left':
+
+						htmlCell.style.borderLeft =
+							'1px solid #000';
+
+						break;
+				}
+			}
+		}
+	}
+
+	return doc.body.innerHTML;
+}
 
 ClassicEditor
 	.create(editorConfig)
@@ -482,8 +578,12 @@ ClassicEditor
 		
 			if (!output) return;
 		
-			let html =
-				editor.getData();
+			let html = editor.getData();
+			
+			html = applyTableBorders(
+					html,
+					editor
+				);
 		
 			// Conversão de negrito legado
 			html = html
