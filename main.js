@@ -228,13 +228,13 @@ function convertLists(html) {
 	// ======================
 
 	html = html.replace(
-		/<ul>(.*?)<\/ul>/gs,
+		/<ul[^>]*>(.*?)<\/ul>/gs,
 		(match, content) => {
 
 			const items =
 				[
 					...content.matchAll(
-						/<li>(.*?)<\/li>/g
+						/<li[^>]*>(.*?)<\/li>/gs
 					)
 				];
 
@@ -251,13 +251,13 @@ function convertLists(html) {
 	// ======================
 
 	html = html.replace(
-		/<ol>(.*?)<\/ol>/gs,
+		/<ol[^>]*>(.*?)<\/ol>/gs,
 		(match, content) => {
 
 			const items =
 				[
 					...content.matchAll(
-						/<li>(.*?)<\/li>/g
+						/<li[^>]*>(.*?)<\/li>/gs
 					)
 				];
 
