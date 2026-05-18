@@ -233,131 +233,122 @@ function convertLists(html) {
 		return roman[num - 1] || num;
 	}
 
-	// ======================
-	// BULLET LIST
-	// ======================
+	const parser =
+		new DOMParser();
 
-	html = html.replace(
-		/<ul[^>]*>(.*?)<\/ul>/gs,
-		(match, content) => {
+	const doc =
+		parser.parseFromString(
+			html,
+			'text/html'
+		);
 
-			const items =
-				[
-					...content.matchAll(
-						/<li([^>]*)>(.*?)<\/li>/gs
-					)
-				];
+	let result = '';
 
-			return items.map(item => {
+	function processList(list, level = 0) {
 
-				const attrs = item[1];
-				const text =
-					item[2]
-						.trim()
-						.replace(/\n/g, '');
+		let counter = 0;
 
-				let symbol = '•';
+		list
+			.querySelectorAll(':scope > li')
+			.forEach(li => {
 
-				// indentação
-				if (
-					attrs.includes(
-						'list-indent-1'
-					)
-				) {
-					symbol = '○';
-				}
-				else if (
-					attrs.includes(
-						'list-indent-2'
-					)
-				) {
-					symbol = '■';
-				}
-
-				return `<p>${symbol} ${text}</p>`;
-
-			}).join('');
-		}
-	);
-
-	// ======================
-	// NUMBERED LIST
-	// ======================
-
-	html = html.replace(
-		/<ol[^>]*>(.*?)<\/ol>/gs,
-		(match, content) => {
-
-			const items =
-				[
-					...content.matchAll(
-						/<li([^>]*)>(.*?)<\/li>/gs
-					)
-				];
-
-			let numeric = 0;
-			let alpha = 0;
-			let roman = 0;
-
-			return items.map(item => {
-
-				const attrs = item[1];
-
-				const text =
-					item[2]
-						.trim()
-						.replace(/\n/g, '');
+				counter++;
 
 				let prefix = '';
 
-				// nível 0
+				// BULLET
 				if (
-					!attrs.includes(
-						'list-indent-'
-					)
+					list.tagName === 'UL'
 				) {
 
-					numeric++;
-					alpha = 0;
-					roman = 0;
+					if (level === 0)
+						prefix = '•';
 
-					prefix =
-						numeric + '.';
+					else if (level === 1)
+						prefix = '○';
+
+					else
+						prefix = '■';
 				}
 
-				// nível 1
-				else if (
-					attrs.includes(
-						'list-indent-1'
-					)
-				) {
-
-					alpha++;
-					roman = 0;
-
-					prefix =
-						String.fromCharCode(
-							96 + alpha
-						) + '.';
-				}
-
-				// nível 2
+				// NUMBERED
 				else {
 
-					roman++;
+					if (level === 0) {
 
-					prefix =
-						toRoman(roman)
-						+ '.';
+						prefix =
+							counter + '.';
+					}
+					else if (
+						level === 1
+					) {
+
+						prefix =
+							String.fromCharCode(
+								96 + counter
+							) + '.';
+					}
+					else {
+
+						prefix =
+							toRoman(
+								counter
+							) + '.';
+					}
 				}
 
-				return `<p>${prefix} ${text}</p>`;
+				// pega apenas texto
+				const clone =
+					li.cloneNode(true);
 
-			}).join('');
+				clone
+					.querySelectorAll(
+						'ul,ol'
+					)
+					.forEach(el =>
+						el.remove()
+					);
+
+				const text =
+					clone.innerHTML.trim();
+
+				result +=
+					`<p>${prefix} ${text}</p>`;
+
+				// processa sublista
+				li.querySelectorAll(
+					':scope > ul, :scope > ol'
+				)
+				.forEach(subList => {
+
+					processList(
+						subList,
+						level + 1
+					);
+				});
+			});
+	}
+
+	// percorre body
+	doc.body.childNodes.forEach(node => {
+
+		// listas
+		if (
+			node.tagName === 'UL' ||
+			node.tagName === 'OL'
+		) {
+
+			processList(node);
 		}
-	);
+		else {
 
-	return html;
+			result +=
+				node.outerHTML ||
+				node.textContent;
+		}
+	});
+
+	return result;
 }
 
 ClassicEditor
