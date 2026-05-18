@@ -396,17 +396,20 @@ window.setTableBorder = function (type) {
 
 	const selectedCells = [];
 
+	// tenta achar células selecionadas
 	for (const range of selection.getRanges()) {
 
 		for (const item of range.getItems()) {
 
-			if (item.name === 'tableCell') {
+			if (
+				item.name === 'tableCell'
+			) {
 				selectedCells.push(item);
 			}
 		}
 	}
 
-	// fallback
+	// fallback: cursor dentro da célula
 	if (selectedCells.length === 0) {
 
 		let parent =
@@ -434,6 +437,7 @@ window.setTableBorder = function (type) {
 		return;
 	}
 
+	// TESTE VISUAL
 	window.editor.editing.view.change(writer => {
 
 		selectedCells.forEach(cell => {
@@ -444,100 +448,19 @@ window.setTableBorder = function (type) {
 
 			if (!viewCell) return;
 
-			// limpa marca anterior
-			writer.removeAttribute(
-				'data-border',
-				viewCell
-			);
-
-			// remover
-			if (type === 'none') {
-
-				writer.removeStyle(
-					'border',
-					viewCell
-				);
-
-				return;
-			}
-
-			// marca célula
-			writer.setAttribute(
-				'data-border',
-				type,
-				viewCell
-			);
-
-			// preview visual
 			writer.setStyle(
-				'border',
-				'1px solid #000',
+				'background',
+				'#ffff99',
 				viewCell
 			);
 		});
 	});
 
-	updateHTML();
+	console.log(
+		'Células encontradas:',
+		selectedCells.length
+	);
 };
-
-function convertTableBorders(html) {
-
-	const parser =
-		new DOMParser();
-
-	const doc =
-		parser.parseFromString(
-			html,
-			'text/html'
-		);
-
-	doc.querySelectorAll(
-		'td[data-border]'
-	).forEach(cell => {
-
-		const type =
-			cell.getAttribute(
-				'data-border'
-			);
-
-		let style = '';
-
-		switch(type) {
-
-			case 'all':
-				style =
-					'border:1px solid #000;';
-				break;
-
-			case 'top':
-				style =
-					'border-top:1px solid #000;';
-				break;
-
-			case 'right':
-				style =
-					'border-right:1px solid #000;';
-				break;
-
-			case 'bottom':
-				style =
-					'border-bottom:1px solid #000;';
-				break;
-
-			case 'left':
-				style =
-					'border-left:1px solid #000;';
-				break;
-		}
-
-		cell.style.cssText += style;
-		cell.removeAttribute(
-			'data-border'
-		);
-	});
-
-	return doc.body.innerHTML;
-}
 
 
 ClassicEditor
@@ -553,8 +476,8 @@ ClassicEditor
 		
 			if (!output) return;
 		
-			let html = editor.getData();
-			html = convertTableBorders(html);
+			let html =
+				editor.getData();
 		
 			// Conversão de negrito legado
 			html = html
