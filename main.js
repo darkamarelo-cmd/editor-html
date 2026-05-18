@@ -477,7 +477,9 @@ window.setTableBorder = function (type) {
 		});
 	});
 
+	setTimeout(() => {
 	updateHTML();
+	}, 100);
 };
 
 function convertTableBorders(html) {
