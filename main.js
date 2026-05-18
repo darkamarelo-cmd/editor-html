@@ -99,7 +99,8 @@ const editorConfig = {
 		TableToolbar,
 		TextTransformation,
 		TodoList,
-		Underline
+		Underline,
+		TableBorderPlugin
 	],
 	licenseKey: LICENSE_KEY,
 	fullscreen: {
@@ -400,205 +401,104 @@ window.setTableBorder = function (type) {
 
 		for (const item of range.getItems()) {
 
-			if (item.name === 'tableCell') {
+			if (item.is && item.is('element', 'tableCell')) {
 				selectedCells.push(item);
 			}
 		}
 	}
 
 	// fallback
-	if (selectedCells.length === 0) {
+	if (!selectedCells.length) {
 
 		let parent =
-			selection.getFirstPosition()
-				.parent;
+			selection.getFirstPosition()?.parent;
 
-		while (
-			parent &&
-			parent.name !== 'tableCell'
-		) {
+		while (parent && parent.name !== 'tableCell') {
 			parent = parent.parent;
 		}
 
-		if (parent) {
-			selectedCells.push(parent);
-		}
+		if (parent) selectedCells.push(parent);
 	}
 
 	if (!selectedCells.length) {
-
-		alert(
-			'Selecione uma célula da tabela'
-		);
-
+		alert('Selecione uma célula da tabela');
 		return;
 	}
 
-	window.editor.editing.view.change(writer => {
+	window.editor.model.change(writer => {
 
 		selectedCells.forEach(cell => {
 
-			const viewCell =
-				window.editor.editing.mapper
-					.toViewElement(cell);
-
-			if (!viewCell) return;
-
-			// limpa marca anterior
-			writer.removeAttribute(
-				'data-border',
-				viewCell
-			);
-
-			// remover
 			if (type === 'none') {
-
-				writer.removeStyle(
-					'border',
-					viewCell
-				);
-
-				return;
+				writer.removeAttribute('dataBorder', cell);
+			} else {
+				writer.setAttribute('dataBorder', type, cell);
 			}
-
-			// marca célula
-			writer.setAttribute(
-				'data-border',
-				type,
-				viewCell
-			);
-
-			// preview visual
-			writer.setStyle(
-				'border',
-				'1px solid #000',
-				viewCell
-			);
 		});
 	});
-
-	setTimeout(() => {
-	updateHTML();
-	}, 100);
 };
 
-function convertTableBorders(html) {
 
-	const parser =
-		new DOMParser();
 
-	const doc =
-		parser.parseFromString(
-			html,
-			'text/html'
-		);
+function TableBorderPlugin(editor) {
 
-	doc.querySelectorAll(
-		'td[data-border]'
-	).forEach(cell => {
-
-		const type =
-			cell.getAttribute(
-				'data-border'
-			);
-
-		let style = '';
-
-		switch(type) {
-
-			case 'all':
-				style =
-					'border:1px solid #000;';
-				break;
-
-			case 'top':
-				style =
-					'border-top:1px solid #000;';
-				break;
-
-			case 'right':
-				style =
-					'border-right:1px solid #000;';
-				break;
-
-			case 'bottom':
-				style =
-					'border-bottom:1px solid #000;';
-				break;
-
-			case 'left':
-				style =
-					'border-left:1px solid #000;';
-				break;
-		}
-
-		cell.style.cssText += style;
-		cell.removeAttribute(
-			'data-border'
-		);
+	// schema
+	editor.model.schema.extend('tableCell', {
+		allowAttributes: ['dataBorder']
 	});
 
-	return doc.body.innerHTML;
-}
+	// upcast (HTML → model)
+	editor.conversion.for('upcast').attributeToAttribute({
+		view: {
+			name: 'td',
+			styles: {
+				border: true,
+				'border-top': true,
+				'border-right': true,
+				'border-bottom': true,
+				'border-left': true
+			}
+		},
+		model: {
+			key: 'dataBorder',
+			value: viewElement => {
 
+				if (viewElement.getStyle('border')) return 'all';
+				if (viewElement.getStyle('border-top')) return 'top';
+				if (viewElement.getStyle('border-right')) return 'right';
+				if (viewElement.getStyle('border-bottom')) return 'bottom';
+				if (viewElement.getStyle('border-left')) return 'left';
 
-function syncTableStyles(html) {
-
-	const parser =
-		new DOMParser();
-
-	const doc =
-		parser.parseFromString(
-			html,
-			'text/html'
-		);
-
-	// HTML exportado
-	const htmlCells =
-		doc.querySelectorAll('td');
-
-	// HTML visual do editor
-	const editorCells =
-		document.querySelectorAll(
-			'.ck-content td'
-		);
-
-	editorCells.forEach(
-		(editorCell, index) => {
-
-			const htmlCell =
-				htmlCells[index];
-
-			if (!htmlCell) return;
-
-			const border =
-				editorCell.style.borderTop ||
-				editorCell.style.borderRight ||
-				editorCell.style.borderBottom ||
-				editorCell.style.borderLeft ||
-				editorCell.style.border;
-
-			if (!border) return;
-
-			// copia estilos
-			htmlCell.style.border =
-				editorCell.style.border;
-
-			htmlCell.style.borderTop =
-				editorCell.style.borderTop;
-
-			htmlCell.style.borderRight =
-				editorCell.style.borderRight;
-
-			htmlCell.style.borderBottom =
-				editorCell.style.borderBottom;
-
-			htmlCell.style.borderLeft =
-				editorCell.style.borderLeft;
+				return null;
+			}
 		}
-	);
+	});
 
-	return doc.body.innerHTML;
+	// downcast (model → HTML)
+	editor.conversion.for('downcast').attributeToElement({
+		model: 'dataBorder',
+		view: (value, { writer }) => {
+
+			if (!value) return;
+
+			const map = {
+				all: { border: '1px solid #000' },
+				top: { 'border-top': '1px solid #000' },
+				right: { 'border-right': '1px solid #000' },
+				bottom: { 'border-bottom': '1px solid #000' },
+				left: { 'border-left': '1px solid #000' }
+			};
+
+			const style = map[value];
+
+			if (!style) return;
+
+			return {
+				name: 'td',
+				styles: style
+			};
+		}
+	});
 }
 
 ClassicEditor
@@ -615,7 +515,6 @@ ClassicEditor
 			if (!output) return;
 		
 			let html = editor.getData();
-			html = syncTableStyles(html);
 		
 			// Conversão de negrito legado
 			html = html
