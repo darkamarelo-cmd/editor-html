@@ -387,6 +387,88 @@ function convertLists(html) {
 	return result;
 }
 
+window.setTableBorder = function (type) {
+
+	if (!window.editor) return;
+
+	const selection =
+		window.editor.model.document.selection;
+
+	const selectedCells = [];
+
+	// pega múltiplas células selecionadas
+	for (const range of selection.getRanges()) {
+
+		for (const item of range.getItems()) {
+
+			if (
+				item.is &&
+				item.is('element', 'tableCell')
+			) {
+				selectedCells.push(item);
+			}
+		}
+	}
+
+	// fallback: cursor dentro de uma célula
+	if (selectedCells.length === 0) {
+
+		let parent =
+			selection.getFirstPosition()
+				.parent;
+
+		while (
+			parent &&
+			parent.name !== 'tableCell'
+		) {
+			parent = parent.parent;
+		}
+
+		if (parent) {
+			selectedCells.push(parent);
+		}
+	}
+
+	if (selectedCells.length === 0) {
+
+		alert(
+			'Selecione uma célula da tabela'
+		);
+
+		return;
+	}
+
+	window.editor.model.change(writer => {
+
+		selectedCells.forEach(cell => {
+
+			if (type === 'none') {
+
+				writer.removeAttribute(
+					'dataBorder',
+					cell
+				);
+
+				return;
+			}
+
+			writer.setAttribute(
+				'dataBorder',
+				type,
+				cell
+			);
+		});
+	});
+
+	console.log(
+		'Borda aplicada:',
+		type,
+		selectedCells.length,
+		'células'
+	);
+};
+
+
 ClassicEditor
 	.create(editorConfig)
 	.then(editor => {
