@@ -516,26 +516,25 @@ window.setTableBorder = function (type) {
 					break;
 			}
 
-			// pega DOM real
-			const domCell =
-				window.editor
-					.editing
-					.view
-					.domConverter
-					.mapViewToDom(viewCell);
-
-			if (!domCell) return;
-
-			// salva atributo persistente
-			if (type === 'none') {
-
-				delete domCell.dataset.border;
-
-			} else {
-
-				domCell.dataset.border =
-					type;
-			}
+				// salva no model do CKEditor
+				window.editor.model.change(writer => {
+				
+					if (type === 'none') {
+				
+						writer.removeAttribute(
+							'tableBorder',
+							cell
+						);
+				
+					} else {
+				
+						writer.setAttribute(
+							'tableBorder',
+							type,
+							cell
+						);
+					}
+				});
 		});
 	});
 
@@ -559,63 +558,65 @@ function applyTableBorders(html) {
 	const htmlCells =
 		doc.querySelectorAll('td');
 
-	const editorCells =
-		document.querySelectorAll(
-			'.ck-editor__editable td'
-		);
+	let index = 0;
 
-	editorCells.forEach(
-		(editorCell, index) => {
+	for (const root of
+		window.editor.model.document
+			.getRoot()
+			.getChildren()) {
 
-			const htmlCell =
-				htmlCells[index];
+		if (root.name !== 'table') {
+			continue;
+		}
 
-			if (!htmlCell) return;
+		for (const row of root.getChildren()) {
 
-			const border =
-				editorCell.dataset.border;
+			for (const cell of row.getChildren()) {
 
-			if (!border) return;
+				const htmlCell =
+					htmlCells[index];
 
-			switch(border) {
+				index++;
 
-				case 'all':
+				if (!htmlCell) continue;
 
-					htmlCell.style.border =
-						'1px solid #000';
+				const border =
+					cell.getAttribute(
+						'tableBorder'
+					);
 
-					break;
+				if (!border) continue;
 
-				case 'top':
+				switch(border) {
 
-					htmlCell.style.borderTop =
-						'1px solid #000';
+					case 'all':
+						htmlCell.style.border =
+							'1px solid #000';
+						break;
 
-					break;
+					case 'top':
+						htmlCell.style.borderTop =
+							'1px solid #000';
+						break;
 
-				case 'right':
+					case 'right':
+						htmlCell.style.borderRight =
+							'1px solid #000';
+						break;
 
-					htmlCell.style.borderRight =
-						'1px solid #000';
+					case 'bottom':
+						htmlCell.style.borderBottom =
+							'1px solid #000';
+						break;
 
-					break;
-
-				case 'bottom':
-
-					htmlCell.style.borderBottom =
-						'1px solid #000';
-
-					break;
-
-				case 'left':
-
-					htmlCell.style.borderLeft =
-						'1px solid #000';
-
-					break;
+					case 'left':
+						htmlCell.style.borderLeft =
+							'1px solid #000';
+						break;
+				}
 			}
 		}
-	);
+	}
 
 	return doc.body.innerHTML;
 }
