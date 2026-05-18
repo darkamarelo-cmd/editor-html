@@ -99,7 +99,8 @@ const editorConfig = {
 		TableToolbar,
 		TextTransformation,
 		TodoList,
-		Underline
+		Underline,
+		TableBorderPlugin
 	],
 	licenseKey: LICENSE_KEY,
 	fullscreen: {
@@ -387,241 +388,130 @@ function convertLists(html) {
 	return result;
 }
 
-window.setTableBorder = function (type) {
+window.setTableBorder = function ( type ) {
 
-	if (!window.editor) return;
+	const editor = window.editor;
+	const selection = editor.model.document.selection;
 
-	const selection =
-		window.editor.model.document.selection;
+	editor.model.change( writer => {
 
-	const selectedCells = [];
+		let changed = false;
 
-	// pega células selecionadas
-	for (const range of selection.getRanges()) {
+		for ( const range of selection.getRanges() ) {
 
-		for (const item of range.getItems()) {
+			for ( const item of range.getItems() ) {
 
-			if (item.name === 'tableCell') {
-				selectedCells.push(item);
-			}
-		}
-	}
+				if ( item.name === 'tableCell' ) {
 
-	// fallback: uma única célula
-	if (!selectedCells.length) {
-
-		let parent =
-			selection.getFirstPosition()
-				.parent;
-
-		while (
-			parent &&
-			parent.name !== 'tableCell'
-		) {
-			parent = parent.parent;
-		}
-
-		if (parent) {
-			selectedCells.push(parent);
-		}
-	}
-
-	if (!selectedCells.length) {
-
-		alert(
-			'Selecione uma célula da tabela'
-		);
-
-		return;
-	}
-
-	// altera visual + salva atributo
-	window.editor.editing.view.change(writer => {
-
-		selectedCells.forEach(cell => {
-
-			const viewCell =
-				window.editor.editing.mapper
-					.toViewElement(cell);
-
-			if (!viewCell) return;
-
-			// limpa visual antigo
-			writer.removeStyle(
-				'border',
-				viewCell
-			);
-
-			writer.removeStyle(
-				'border-top',
-				viewCell
-			);
-
-			writer.removeStyle(
-				'border-right',
-				viewCell
-			);
-
-			writer.removeStyle(
-				'border-bottom',
-				viewCell
-			);
-
-			writer.removeStyle(
-				'border-left',
-				viewCell
-			);
-
-			// preview visual
-			switch(type) {
-
-				case 'all':
-					writer.setStyle(
-						'border',
-						'1px solid #000',
-						viewCell
-					);
-					break;
-
-				case 'top':
-					writer.setStyle(
-						'border-top',
-						'1px solid #000',
-						viewCell
-					);
-					break;
-
-				case 'right':
-					writer.setStyle(
-						'border-right',
-						'1px solid #000',
-						viewCell
-					);
-					break;
-
-				case 'bottom':
-					writer.setStyle(
-						'border-bottom',
-						'1px solid #000',
-						viewCell
-					);
-					break;
-
-				case 'left':
-					writer.setStyle(
-						'border-left',
-						'1px solid #000',
-						viewCell
-					);
-					break;
-			}
-
-				// salva no model do CKEditor
-				window.editor.model.change(writer => {
-				
-					if (type === 'none') {
-				
+					if ( type === 'none' ) {
 						writer.removeAttribute(
 							'tableBorder',
-							cell
+							item
 						);
-				
 					} else {
-				
 						writer.setAttribute(
 							'tableBorder',
 							type,
-							cell
+							item
 						);
 					}
-				});
-		});
-	});
 
-	if (updateHTML) {
-	updateHTML();
-	}
-};
-
-
-function applyTableBorders(html) {
-
-	const parser =
-		new DOMParser();
-
-	const doc =
-		parser.parseFromString(
-			html,
-			'text/html'
-		);
-
-	const htmlCells =
-		doc.querySelectorAll('td');
-
-	let index = 0;
-
-	for (const root of
-		window.editor.model.document
-			.getRoot()
-			.getChildren()) {
-
-		if (root.name !== 'table') {
-			continue;
-		}
-
-		for (const row of root.getChildren()) {
-
-			for (const cell of row.getChildren()) {
-
-				const htmlCell =
-					htmlCells[index];
-
-				index++;
-
-				if (!htmlCell) continue;
-
-				const border =
-					cell.getAttribute(
-						'tableBorder'
-					);
-
-				if (!border) continue;
-
-				switch(border) {
-
-					case 'all':
-						htmlCell.style.border =
-							'1px solid #000';
-						break;
-
-					case 'top':
-						htmlCell.style.borderTop =
-							'1px solid #000';
-						break;
-
-					case 'right':
-						htmlCell.style.borderRight =
-							'1px solid #000';
-						break;
-
-					case 'bottom':
-						htmlCell.style.borderBottom =
-							'1px solid #000';
-						break;
-
-					case 'left':
-						htmlCell.style.borderLeft =
-							'1px solid #000';
-						break;
+					changed = true;
 				}
 			}
 		}
-	}
 
-	return doc.body.innerHTML;
-}
+		// fallback caso seleção não pegue direto a célula
+		if ( !changed ) {
+
+		let pos = selection.getFirstPosition();
+		let cell = pos && pos.findAncestor( 'tableCell' );
+
+			if ( cell ) {
+
+				if ( type === 'none' ) {
+					writer.removeAttribute('tableBorder', cell);
+				} else {
+					writer.setAttribute('tableBorder', type, cell);
+				}
+			}
+		}
+	});
+
+	updateHTML?.();
+};
+
 
 let updateHTML = null;
+
+function TableBorderPlugin(editor) {
+
+	// 1. Schema
+	editor.model.schema.extend('tableCell', {
+		allowAttributes: ['tableBorder']
+	});
+
+	// 2. Upcast (HTML → Model)
+	editor.conversion.for('upcast').elementToAttribute({
+		view: {
+			name: 'td',
+			styles: {
+				border: true,
+				'border-top': true,
+				'border-right': true,
+				'border-bottom': true,
+				'border-left': true
+			}
+		},
+		model: {
+			key: 'tableBorder',
+			value: viewElement => {
+
+				const border = viewElement.getStyle('border');
+				const top = viewElement.getStyle('border-top');
+				const right = viewElement.getStyle('border-right');
+				const bottom = viewElement.getStyle('border-bottom');
+				const left = viewElement.getStyle('border-left');
+
+				if (border) return 'all';
+				if (top) return 'top';
+				if (right) return 'right';
+				if (bottom) return 'bottom';
+				if (left) return 'left';
+
+				return null;
+			}
+		}
+	});
+
+	// 3. Downcast (Model → View) ✔ CORRIGIDO
+	editor.conversion.for('downcast').attributeToElement({
+		model: 'tableBorder',
+		view: (value, { writer }) => {
+
+			if (!value) return;
+
+			const styles = {
+				all: { border: '1px solid #000' },
+				top: { 'border-top': '1px solid #000' },
+				right: { 'border-right': '1px solid #000' },
+				bottom: { 'border-bottom': '1px solid #000' },
+				left: { 'border-left': '1px solid #000' }
+			};
+
+			const style = styles[value];
+
+			if (!style) return;
+
+			// IMPORTANTE: aplica direto no td (sem duplicar elemento)
+			return {
+				name: 'td',
+				styles: style
+			};
+		},
+		converterPriority: 'high'
+	});
+}
 
 ClassicEditor
 	.create(editorConfig)
@@ -637,8 +527,6 @@ ClassicEditor
 			if (!output) return;
 		
 			let html = window.editor.getData();
-
-			html = applyTableBorders(html);
 		
 			// Conversão de negrito legado
 			html = html
