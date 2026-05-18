@@ -394,12 +394,16 @@ ClassicEditor
 					/<\/b>/g,
 					'</span>'
 				);
-			html = convertLists(html);
+			html =
+				formatHTML(html);
+			
+			html =
+				convertLists(html);
+			
 			html =
 				`<div style="text-align:left;">${html}</div>`;
 			
-			output.value =
-				formatHTML(html);
+			output.value = html;
 		}
 
 		// Atualiza em tempo real
